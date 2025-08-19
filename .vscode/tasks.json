@@ -2,14 +2,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build:debug",
             "type": "shell",
-            "command": "cmake",
+            "command": "powershell",
             "args": [
-                "--build",
-                "${workspaceFolder}/build",
-                "--config",
-                "Debug"
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\build-debug.ps1"
             ],
             "group": {
                 "kind": "build",
@@ -17,7 +18,29 @@
             },
             "problemMatcher": [
                 "$gcc"
-            ]
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "build:release",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\build-release.ps1"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
         },
         {
             "label": "clean",
@@ -37,8 +60,11 @@
             "label": "run",
             "type": "shell",
             "command": "${workspaceFolder}/build/VulkanEngine.exe",
-            "group": "test",
-            "dependsOn": "build"
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "dependsOn": "build:debug"
         }
     ]
 }

@@ -6,17 +6,20 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Vulkan REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)  # MSYS2 provides a CMake config package
+find_package(glfw3 CONFIG REQUIRED)
 
-# Add source files
 file(GLOB_RECURSE SOURCES
-    src/*.cpp
+src/*.cpp
 )
 
-# Create executable
-add_executable(VulkanEngine ${SOURCES} ${SHADERS})
+add_executable(VulkanEngine ${SOURCES})
+
+target_compile_definitions(VulkanEngine PRIVATE
+    $<$<CONFIG:Debug>:DEBUG=1>
+    $<$<CONFIG:Release>:RELEASE=1>
+)
 
 target_link_libraries(VulkanEngine PRIVATE
     Vulkan::Vulkan   # links to vulkan-1 on Windows
-    glfw             # target from glfw3 CONFIG
+    glfw
 )
