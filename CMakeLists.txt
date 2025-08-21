@@ -7,9 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Vulkan REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 file(GLOB_RECURSE SOURCES
-src/*.cpp
+    src/*.cpp
 )
 
 add_executable(VulkanEngine ${SOURCES})
@@ -20,6 +21,7 @@ target_compile_definitions(VulkanEngine PRIVATE
 )
 
 target_link_libraries(VulkanEngine PRIVATE
-    Vulkan::Vulkan   # links to vulkan-1 on Windows
+    Vulkan::Vulkan
     glfw
+    glm::glm
 )

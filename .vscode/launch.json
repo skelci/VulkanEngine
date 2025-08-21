@@ -9,10 +9,27 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [
+                {
+                    "name": "VK_LAYER_PATH",
+                    "value": "C:/msys64/ucrt64/share/vulkan/explicit_layer.d;C:/msys64/ucrt64/share/vulkan/implicit_layer.d"
+                },
+                {
+                    "name": "PATH",
+                    "value": "C:/msys64/ucrt64/bin;${env:PATH}"
+                },
+                {
+                    "name": "VK_INSTANCE_LAYERS",
+                    "value": "VK_LAYER_KHRONOS_validation"
+                },
+                {
+                    "name": "VK_DBG_LAYER_LEVEL",
+                    "value": "info"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "build",
+            "preLaunchTask": "build:debug",
             "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe",
             "setupCommands": [
                 {
