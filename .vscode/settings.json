@@ -9,6 +9,7 @@
     "editor.formatOnSave": true,
     "files.associations": {
         "*.vert": "glsl",
-        "*.frag": "glsl"
+        "*.frag": "glsl",
+        "iostream": "cpp"
     }
 }

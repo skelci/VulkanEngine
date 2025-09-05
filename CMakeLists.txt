@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(VulkanEngine VERSION 0.1)
+project(VulkanEngine VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,11 +14,6 @@ file(GLOB_RECURSE SOURCES
 )
 
 add_executable(VulkanEngine ${SOURCES})
-
-target_compile_definitions(VulkanEngine PRIVATE
-    $<$<CONFIG:Debug>:DEBUG=1>
-    $<$<CONFIG:Release>:RELEASE=1>
-)
 
 target_link_libraries(VulkanEngine PRIVATE
     Vulkan::Vulkan
