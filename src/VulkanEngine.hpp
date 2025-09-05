@@ -15,7 +15,9 @@ private:
     void InitVulkan();
     void CreateInstance();
     void SetupDebugMessenger();
+
     void PickPhysicalDevice();
+    int RateDeviceSuitability(VkPhysicalDevice device);
 
     void MainLoop();
     void Cleanup();
