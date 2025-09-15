@@ -31,7 +31,9 @@ This project is a Vulkan-based game engine designed to provide a framework for d
 Contributions are welcome! Please open an issue or submit a pull request for any enhancements or bug fixes.
 
 Format code as follows:
-`{ PointerAlignment: Left, MaxEmptyLinesToKeep: 3, BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Attach, AllowShortIfStatementsOnASingleLine: true, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4, NamespaceIndentation: All, FixNamespaceComments: false }`
+```
+{ PointerAlignment: Left, MaxEmptyLinesToKeep: 3, BasedOnStyle: LLVM, UseTab: Never, IndentWidth: 4, TabWidth: 4, BreakBeforeBraces: Attach, AllowShortIfStatementsOnASingleLine: true, IndentCaseLabels: false, ColumnLimit: 0, AccessModifierOffset: -4, NamespaceIndentation: All, FixNamespaceComments: false }
+```
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
