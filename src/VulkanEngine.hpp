@@ -6,6 +6,15 @@
 #include <vector>
 
 
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+
+    bool IsComplete() {
+        return graphicsFamily.has_value();
+    }
+};
+
+
 class CVulkanEngine {
 public:
     void Run();
@@ -24,6 +33,8 @@ private:
 
     bool CheckValidationLayerSupport();
     std::vector<const char*> GetRequiredExtensions();
+
+    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(

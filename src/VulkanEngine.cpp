@@ -110,6 +110,11 @@ int CVulkanEngine::RateDeviceSuitability(VkPhysicalDevice device) {
     VkPhysicalDeviceFeatures deviceFeatures;
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
+    // Application can't function without geometry shaders
+    if (!deviceFeatures.geometryShader ||
+        !FindQueueFamilies(device).IsComplete())
+        return 0;
+
     int score = 0;
 
     // Discrete GPUs have a significant performance advantage
@@ -119,11 +124,6 @@ int CVulkanEngine::RateDeviceSuitability(VkPhysicalDevice device) {
 
     // Maximum possible size of textures affects graphics quality
     score += deviceProperties.limits.maxImageDimension2D;
-
-    // Application can't function without geometry shaders
-    if (!deviceFeatures.geometryShader) {
-        return 0;
-    }
 
     return score;
 }
@@ -183,6 +183,31 @@ std::vector<const char*> CVulkanEngine::GetRequiredExtensions() {
     }
 
     return extensions;
+}
+
+QueueFamilyIndices CVulkanEngine::FindQueueFamilies(VkPhysicalDevice device) {
+    QueueFamilyIndices indices;
+
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    int i = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            indices.graphicsFamily = i;
+        }
+
+        if (indices.IsComplete()) {
+            break;
+        }
+
+        i++;
+    }
+
+    return indices;
 }
 
 
