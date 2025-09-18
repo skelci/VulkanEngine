@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <optional>
 #include <vector>
 
 
@@ -27,6 +28,7 @@ private:
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
+    void CreateLogicalDevice();
 
     void MainLoop();
     void Cleanup();
@@ -57,6 +59,8 @@ private:
     GLFWwindow* window;
     VkInstance instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device;
+    VkQueue graphicsQueue;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
