@@ -6,6 +6,16 @@
     "cmake.configureOnOpen": true,
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.cmakePath": "C:/msys64/ucrt64/bin/cmake.exe",
+    "cmake.useVsDeveloperEnvironment": "never",
+    "cmake.generator": "Ninja",
+    "cmake.configureSettings": {
+        "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/gcc.exe",
+        "CMAKE_CXX_COMPILER": "C:/msys64/ucrt64/bin/g++.exe"
+    },
+    "cmake.configureEnvironment": {
+        "PATH": "C:/msys64/ucrt64/bin;${env:PATH}"
+    },
     "editor.formatOnSave": true,
     "files.associations": {
         "*.vert": "glsl",

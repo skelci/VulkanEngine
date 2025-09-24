@@ -9,9 +9,10 @@
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
 
     bool IsComplete() {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
@@ -25,6 +26,7 @@ private:
     void InitVulkan();
     void CreateInstance();
     void SetupDebugMessenger();
+    void CreateSurface();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -60,7 +62,11 @@ private:
     VkInstance instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
+
     VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    
+    VkSurfaceKHR surface;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
