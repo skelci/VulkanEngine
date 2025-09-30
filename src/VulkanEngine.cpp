@@ -26,6 +26,7 @@ void CVulkanEngine::InitWindow() {
 void CVulkanEngine::InitVulkan() {
     CreateInstance();
     SetupDebugMessenger();
+    CreateSurface();
     PickPhysicalDevice();
     CreateLogicalDevice();
 }
