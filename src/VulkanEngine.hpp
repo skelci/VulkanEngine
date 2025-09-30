@@ -34,6 +34,7 @@ private:
     void SetupDebugMessenger();
     void CreateSurface();
     void CreateSwapChain();
+    void CreateImageViews();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -85,6 +86,7 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
