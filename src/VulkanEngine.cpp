@@ -173,6 +173,9 @@ void CVulkanEngine::CreateImageViews() {
     }
 }
 
+void CVulkanEngine::CreateGraphicsPipeline() {
+}
+
 void CVulkanEngine::PickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);

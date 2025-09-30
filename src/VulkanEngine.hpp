@@ -35,6 +35,7 @@ private:
     void CreateSurface();
     void CreateSwapChain();
     void CreateImageViews();
+    void CreateGraphicsPipeline();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
