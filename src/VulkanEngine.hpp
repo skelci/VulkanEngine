@@ -16,6 +16,12 @@ struct QueueFamilyIndices {
     }
 };
 
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
 
 class CVulkanEngine {
 public:
@@ -27,6 +33,7 @@ private:
     void CreateInstance();
     void SetupDebugMessenger();
     void CreateSurface();
+    void CreateSwapChain();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -40,8 +47,14 @@ private:
 
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
+    VkSurfaceFormatKHR ChoseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR ChoseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D ChoseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+    static VKAPI_ATTR VkBool32 VKAPI_CALL
+    DebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
         const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -65,8 +78,13 @@ private:
 
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-    
+
     VkSurfaceKHR surface;
+
+    VkSwapchainKHR swapChain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
@@ -76,6 +94,10 @@ private:
 
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",
+    };
+
+    const std::vector<const char*> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
 #ifdef NDEBUG
