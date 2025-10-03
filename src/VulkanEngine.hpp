@@ -93,6 +93,7 @@ private:
     
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
