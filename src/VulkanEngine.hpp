@@ -38,6 +38,7 @@ private:
     void CreateImageViews();
     void CreateRenderPass();
     void CreateGraphicsPipeline();
+    void CreateFramebuffers();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -90,6 +91,7 @@ private:
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkFramebuffer> swapChainFramebuffers;
     
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
