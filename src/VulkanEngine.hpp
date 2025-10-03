@@ -36,6 +36,7 @@ private:
     void CreateSurface();
     void CreateSwapChain();
     void CreateImageViews();
+    void CreateRenderPass();
     void CreateGraphicsPipeline();
 
     void PickPhysicalDevice();
@@ -90,6 +91,7 @@ private:
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
     
+    VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
 
     VkDebugUtilsMessengerEXT debugMessenger;
