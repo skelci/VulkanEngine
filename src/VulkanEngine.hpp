@@ -108,4 +108,9 @@ private:
 #else
     const bool enableValidationLayers = true;
 #endif
+
+
+    // Shader helpers
+    static std::vector<char> ReadFile(const std::string& filename);
+    VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
