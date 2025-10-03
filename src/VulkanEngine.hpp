@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <vector>
+#include <string>
 
 
 struct QueueFamilyIndices {
@@ -88,6 +89,8 @@ private:
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
+    
+    VkPipelineLayout pipelineLayout;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
