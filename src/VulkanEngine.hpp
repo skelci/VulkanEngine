@@ -4,8 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include <optional>
-#include <vector>
 #include <string>
+#include <vector>
 
 
 struct QueueFamilyIndices {
@@ -39,12 +39,16 @@ private:
     void CreateRenderPass();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
+    void CreateCommandPool();
+    void CreateCommandBuffer();
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
     void CreateLogicalDevice();
 
     void MainLoop();
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
     void Cleanup();
 
     bool CheckValidationLayerSupport();
@@ -92,10 +96,13 @@ private:
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
     std::vector<VkFramebuffer> swapChainFramebuffers;
-    
+
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+
+    VkCommandPool commandPool;
+    VkCommandBuffer commandBuffer;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
