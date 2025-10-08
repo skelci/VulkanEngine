@@ -4,8 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include <optional>
-#include <vector>
 #include <string>
+#include <vector>
 
 
 struct QueueFamilyIndices {
@@ -99,7 +99,7 @@ private:
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
     std::vector<VkFramebuffer> swapChainFramebuffers;
-    
+
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
