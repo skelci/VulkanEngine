@@ -39,12 +39,19 @@ private:
     void CreateRenderPass();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
+    void CreateCommandPool();
+    void CreateCommandBuffer();
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    void CreateSyncObjects();
+
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
     void CreateLogicalDevice();
 
     void MainLoop();
+    void DrawFrame();
+
     void Cleanup();
 
     bool CheckValidationLayerSupport();
@@ -96,6 +103,13 @@ private:
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+
+    VkCommandPool commandPool;
+    VkCommandBuffer commandBuffer;
+
+    VkSemaphore imageAvailableSemaphore;
+    VkSemaphore renderFinishedSemaphore;
+    VkFence inFlightFence;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
