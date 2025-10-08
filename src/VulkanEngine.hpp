@@ -30,17 +30,19 @@ public:
 
 private:
     void InitWindow();
+    static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     void InitVulkan();
     void CreateInstance();
     void SetupDebugMessenger();
     void CreateSurface();
     void CreateSwapChain();
+    void RecreateSwapChain();
     void CreateImageViews();
     void CreateRenderPass();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
     void CreateCommandPool();
-    void CreateCommandBuffer();
+    void CreateCommandBuffers();
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void CreateSyncObjects();
 
@@ -53,6 +55,7 @@ private:
     void DrawFrame();
 
     void Cleanup();
+    void CleanupSwapChain();
 
     bool CheckValidationLayerSupport();
     std::vector<const char*> GetRequiredExtensions();
@@ -105,17 +108,21 @@ private:
     VkPipeline graphicsPipeline;
 
     VkCommandPool commandPool;
-    VkCommandBuffer commandBuffer;
+    std::vector<VkCommandBuffer> commandBuffers;
+    uint32_t currentFrame = 0;
 
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
-    VkFence inFlightFence;
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    
+    std::vector<VkFence> inFlightFences;
+    bool framebufferResized = false;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
+    const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",
