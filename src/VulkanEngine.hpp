@@ -53,8 +53,8 @@ private:
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
     void CreateCommandPool();
+    void CreateVertexBuffer();
     void CreateCommandBuffers();
-    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void CreateSyncObjects();
 
 
@@ -64,6 +64,7 @@ private:
 
     void MainLoop();
     void DrawFrame();
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     void Cleanup();
     void CleanupSwapChain();
@@ -124,19 +125,22 @@ private:
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
-    
+
     std::vector<VkFence> inFlightFences;
     bool framebufferResized = false;
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
 
     const std::vector<SVertex> vertices = {
         {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
         {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
     };
 
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
