@@ -2,7 +2,9 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
+#include <array>
 #include <optional>
 #include <string>
 #include <vector>
@@ -21,6 +23,15 @@ struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
+};
+
+struct SVertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+
+    static VkVertexInputBindingDescription GetBindingDescription();
+
+    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
 };
 
 
@@ -118,6 +129,13 @@ private:
     bool framebufferResized = false;
 
     VkDebugUtilsMessengerEXT debugMessenger;
+
+
+    const std::vector<SVertex> vertices = {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
 
 
     const uint32_t WIDTH = 800;
