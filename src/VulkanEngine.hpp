@@ -34,6 +34,12 @@ struct SVertex {
     static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
 };
 
+struct SUniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
 
 class CVulkanEngine {
 public:
@@ -50,11 +56,13 @@ private:
     void RecreateSwapChain();
     void CreateImageViews();
     void CreateRenderPass();
+    void CreateDescriptorSetLayout();
     void CreateGraphicsPipeline();
     void CreateFramebuffers();
     void CreateCommandPool();
     void CreateVertexBuffer();
     void CreateIndexBuffer();
+    void CreateUniformBuffers();
     void CreateCommandBuffers();
     void CreateSyncObjects();
 
@@ -68,6 +76,7 @@ private:
     void MainLoop();
     void DrawFrame();
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+    void UpdateUniformBuffer(uint32_t currentImage);
 
     void Cleanup();
     void CleanupSwapChain();
@@ -119,6 +128,7 @@ private:
     std::vector<VkFramebuffer> swapChainFramebuffers;
 
     VkRenderPass renderPass;
+    VkDescriptorSetLayout descriptorSetLayout;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
@@ -138,6 +148,10 @@ private:
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
+
+    std::vector<VkBuffer> uniformBuffers;
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    std::vector<void*> uniformBuffersMapped;
 
     const std::vector<SVertex> vertices = {
         {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
