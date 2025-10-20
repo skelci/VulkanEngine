@@ -2,6 +2,8 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/glm.hpp>
 
 #include <array>
@@ -35,9 +37,9 @@ struct SVertex {
 };
 
 struct SUniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
 };
 
 
@@ -63,6 +65,8 @@ private:
     void CreateVertexBuffer();
     void CreateIndexBuffer();
     void CreateUniformBuffers();
+    void CreateDescriptorSets();
+    void CreateDescriptorPool();
     void CreateCommandBuffers();
     void CreateSyncObjects();
 
@@ -153,10 +157,13 @@ private:
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
 
+    VkDescriptorPool descriptorPool;
+    std::vector<VkDescriptorSet> descriptorSets;
+
     const std::vector<SVertex> vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
     };
 
