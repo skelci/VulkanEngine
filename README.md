@@ -62,5 +62,6 @@ This project is licensed under the MIT License. See the LICENSE file for details
       mingw-w64-ucrt-x86_64-shaderc \
       mingw-w64-ucrt-x86_64-vulkan-headers \
       mingw-w64-ucrt-x86_64-vulkan-loader \
-      mingw-w64-ucrt-x86_64-vulkan-validation-layers
+      mingw-w64-ucrt-x86_64-vulkan-validation-layers \
+      mingw-w64-ucrt-x86_64-stb
     ```

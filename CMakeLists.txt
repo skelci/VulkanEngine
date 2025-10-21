@@ -15,6 +15,8 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(VulkanEngine ${SOURCES})
 
+target_include_directories(VulkanEngine PRIVATE "C:/msys64/ucrt64/include")
+
 target_link_libraries(VulkanEngine PRIVATE
     Vulkan::Vulkan
     glfw
