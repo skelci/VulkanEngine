@@ -63,6 +63,8 @@ private:
     void CreateFramebuffers();
     void CreateCommandPool();
     void CreateTextureImage();
+    void CreateTextureImageView();
+    void CreateTextureSampler();
     void CreateVertexBuffer();
     void CreateIndexBuffer();
     void CreateUniformBuffers();
@@ -80,6 +82,8 @@ private:
     void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
     void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
     void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+    VkImageView CreateImageView(VkImage image, VkFormat format);
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -170,6 +174,8 @@ private:
 
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
+    VkImageView textureImageView;
+    VkSampler textureSampler;
 
     const std::vector<SVertex> vertices = {
         {{-0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
