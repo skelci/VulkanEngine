@@ -66,6 +66,7 @@ private:
     void CreateTextureImage();
     void CreateTextureImageView();
     void CreateTextureSampler();
+    void LoadModel();
     void CreateVertexBuffer();
     void CreateIndexBuffer();
     void CreateUniformBuffers();
@@ -164,6 +165,9 @@ private:
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
+    std::vector<SVertex> vertices;
+    std::vector<uint32_t> indices;
+
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
     VkBuffer indexBuffer;
@@ -185,33 +189,14 @@ private:
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
 
-    const std::vector<SVertex> vertices = {
-        {{-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-        {{ 0.5f, -0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-        {{ 0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-        {{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-    };
-
-    const std::vector<uint16_t> indices = {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4,
-
-        4, 1, 0, 4, 5, 1,
-        5, 2, 1, 5, 6, 2,
-        6, 3, 2, 6, 7, 3,
-        7, 0, 3, 7, 4, 0,
-    };
-
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    const uint32_t WIDTH = 800;
-    const uint32_t HEIGHT = 600;
+    const uint32_t WIDTH = 1000;
+    const uint32_t HEIGHT = 900;
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
+
+    const std::string MODEL_PATH = "res/viking_room/viking_room.obj";
+    const std::string TEXTURE_PATH = "res/viking_room/viking_room.png";
 
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",

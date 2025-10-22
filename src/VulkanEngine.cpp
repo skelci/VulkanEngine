@@ -1,9 +1,11 @@
 #include "VulkanEngine.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
 
 #include <chrono>
 #include <cstring>
@@ -85,6 +87,7 @@ void CVulkanEngine::InitVulkan() {
     CreateTextureImage();
     CreateTextureImageView();
     CreateTextureSampler();
+    LoadModel();
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateUniformBuffers();
@@ -528,7 +531,7 @@ void CVulkanEngine::CreateDepthResources() {
 
 void CVulkanEngine::CreateTextureImage() {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("res/textures/texture.jpeg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
@@ -590,6 +593,43 @@ void CVulkanEngine::CreateTextureSampler() {
 
     if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
+    }
+}
+
+void CVulkanEngine::LoadModel() {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(
+        MODEL_PATH,
+        aiProcess_Triangulate |
+        aiProcess_GenNormals |
+        aiProcess_FlipUVs |
+        aiProcess_JoinIdenticalVertices
+    );
+
+    if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
+        throw std::runtime_error(std::string("Assimp: ") + importer.GetErrorString());
+    }
+
+    const aiMesh* mesh = scene->mMeshes[0];
+    vertices.clear();
+    indices.clear();
+    vertices.reserve(mesh->mNumVertices);
+
+    for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
+        SVertex v{};
+        v.pos = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
+        v.color = mesh->HasVertexColors(0)
+                    ? glm::vec3(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b)
+                    : glm::vec3(1.0f);
+        v.texCoord = mesh->HasTextureCoords(0)
+                    ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y)
+                    : glm::vec2(0.0f);
+        vertices.push_back(v);
+    }
+
+    for (uint32_t f = 0; f < mesh->mNumFaces; ++f) {
+        const aiFace& face = mesh->mFaces[f];
+        indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
     }
 }
 
@@ -772,7 +812,7 @@ void CVulkanEngine::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t 
 
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
@@ -1290,7 +1330,7 @@ void CVulkanEngine::CleanupSwapChain() {
     vkDestroyImageView(device, depthImageView, nullptr);
     vkDestroyImage(device, depthImage, nullptr);
     vkFreeMemory(device, depthImageMemory, nullptr);
-    
+
     for (auto framebuffer : swapChainFramebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
