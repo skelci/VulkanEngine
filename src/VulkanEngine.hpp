@@ -30,10 +30,10 @@ struct SwapChainSupportDetails {
 struct SVertex {
     glm::vec2 pos;
     glm::vec3 color;
+    glm::vec2 texCoord;
 
     static VkVertexInputBindingDescription GetBindingDescription();
-
-    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
+    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
 };
 
 struct SUniformBufferObject {
@@ -178,10 +178,10 @@ private:
     VkSampler textureSampler;
 
     const std::vector<SVertex> vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+        {{ 0.5f, -0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
+        {{ 0.5f,  0.5f}, {0.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
     };
 
     const std::vector<uint16_t> indices = {
