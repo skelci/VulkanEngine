@@ -12,3 +12,5 @@ cmake -S . -B build -G "Ninja" `
   -DCMAKE_PREFIX_PATH="C:/msys64/ucrt64"
 
 cmake --build build --config Release
+
+./scripts/compile-shaders
