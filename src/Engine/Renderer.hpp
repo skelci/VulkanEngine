@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Delegate.hpp"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #define GLM_FORCE_RADIANS
@@ -11,26 +13,22 @@
 #include <string>
 #include <vector>
 
-struct QueueFamilyIndices
-{
+struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
 
-    bool IsComplete()
-    {
+    bool IsComplete() {
         return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
-struct SwapChainSupportDetails
-{
+struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct SVertex
-{
+struct SVertex {
     glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
@@ -39,21 +37,27 @@ struct SVertex
     static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
 };
 
-struct SUniformBufferObject
-{
+struct SUniformBufferObject {
     alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };
 
-class CVulkanEngine
-{
+class CRenderer {
 public:
-    void Run();
+    CRenderer();
+    ~CRenderer();
+
+    void Tick(float DeltaTime);
+
+    SDelegate OnWindowClosed;
 
 private:
+    void BeginPlay();
+    void EndPlay();
+
     void InitWindow();
-    static void FramebufferResizeCallback(GLFWwindow *window, int width, int height);
+    static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     void InitVulkan();
     void CreateInstance();
     void SetupDebugMessenger();
@@ -83,7 +87,7 @@ private:
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
     void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
@@ -93,7 +97,7 @@ private:
 
     void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
-    VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+    VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
     VkFormat FindDepthFormat();
     bool HasStencilComponent(VkFormat format);
 
@@ -101,7 +105,6 @@ private:
     int RateDeviceSuitability(VkPhysicalDevice device);
     void CreateLogicalDevice();
 
-    void MainLoop();
     void DrawFrame();
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
     void UpdateUniformBuffer(uint32_t currentImage);
@@ -110,34 +113,34 @@ private:
     void CleanupSwapChain();
 
     bool CheckValidationLayerSupport();
-    std::vector<const char *> GetRequiredExtensions();
+    std::vector<const char*> GetRequiredExtensions();
 
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 
     bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device);
-    VkSurfaceFormatKHR ChoseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
-    VkPresentModeKHR ChoseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
-    VkExtent2D ChoseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
+    VkSurfaceFormatKHR ChoseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR ChoseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+    VkExtent2D ChoseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(
         VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-        void *pUserData);
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData);
 
     static VkResult CreateDebugUtilsMessengerEXT(
-        VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-        const VkAllocationCallbacks *pAllocator, VkDebugUtilsMessengerEXT *pDebugMessenger);
+        VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+        const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 
-    static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+    static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
     static void DestroyDebugUtilsMessengerEXT(
         VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
-        const VkAllocationCallbacks *pAllocator);
+        const VkAllocationCallbacks* pAllocator);
 
-    GLFWwindow *window;
+    GLFWwindow* window;
     VkInstance instance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice device;
@@ -181,7 +184,7 @@ private:
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
-    std::vector<void *> uniformBuffersMapped;
+    std::vector<void*> uniformBuffersMapped;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -213,11 +216,11 @@ private:
     const std::string MODEL_PATH = "res/viking_room/viking_room.obj";
     const std::string TEXTURE_PATH = "res/viking_room/viking_room.png";
 
-    const std::vector<const char *> validationLayers = {
+    const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",
     };
 
-    const std::vector<const char *> deviceExtensions = {
+    const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
@@ -228,6 +231,6 @@ private:
 #endif
 
     // Shader helpers
-    static std::vector<char> ReadFile(const std::string &filename);
-    VkShaderModule CreateShaderModule(const std::vector<char> &code);
+    static std::vector<char> ReadFile(const std::string& filename);
+    VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
