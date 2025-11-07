@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
@@ -42,6 +43,7 @@ struct SUniformBufferObject {
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };
+
 
 class CRenderer {
 public:

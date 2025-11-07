@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 
+#include "Log.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include <assimp/Importer.hpp>
@@ -10,7 +12,6 @@
 #include <chrono>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <set>
 #include <stdexcept>
@@ -1608,8 +1609,18 @@ QueueFamilyIndices CRenderer::FindQueueFamilies(VkPhysicalDevice device) {
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL CRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
-    std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+    using enum ELogLevel;
 
+    ELogLevel level = Info;
+    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        level = Error;
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+        level = Warning;
+    } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+        level = Info;
+    }
+
+    CLog::Log("Renderer", level, pCallbackData->pMessage);
     return VK_FALSE;
 }
 

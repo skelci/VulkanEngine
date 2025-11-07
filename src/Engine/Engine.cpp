@@ -1,4 +1,5 @@
 #include "Engine.hpp"
+#include "Log.hpp"
 
 
 CEngine::CEngine() {
@@ -8,6 +9,8 @@ CEngine::CEngine() {
 }
 
 void CEngine::Initialize() {
+    CLog::Init();
+
     Renderer = new CRenderer();
     Renderer->OnWindowClosed.Bind(this, &CEngine::OnWindowClosed);
 }
