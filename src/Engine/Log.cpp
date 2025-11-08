@@ -5,18 +5,7 @@
 #include <fstream>
 
 
-std::string CLog::LogPath = "Saves/Logs";
-std::string CLog::FullLogPath;
-TDelegate<std::string_view> CLog::OnLogMessage;
-const std::string CLog::LogLevelNames[] = {"Info", "Warning", "Error"};
-const std::string CLog::LogLevelAnsiColors[] = {
-    "\033[0m",  // Info - Default
-    "\033[33m", // Warning - Yellow
-    "\033[31m"  // Error - Red
-};
-
-
-void CLog::Init() {
+void CLog::Initialize() {
     FullLogPath = LogPath + "/logLatest.log";
 
     namespace fs = std::filesystem;
@@ -51,13 +40,12 @@ void CLog::Log(std::string_view category, ELogLevel level, std::string_view mess
     printf("%s%s", levelColor.data(), logMessage.c_str());
 
     std::ofstream logFile;
-    const std::string fullLogPath = LogPath + "/log.txt";
-    logFile.open(fullLogPath, std::ios::app);
+    logFile.open(FullLogPath, std::ios::app);
 
     if (logFile.is_open()) {
         logFile << logMessage;
         logFile.close();
     }
 
-    OnLogMessage.Broadcast(logMessage);
+    OnLogMessage.Broadcast(level, message);
 }

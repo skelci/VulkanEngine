@@ -1,5 +1,6 @@
 #include "Engine.hpp"
-#include "Log.hpp"
+
+#include "EngineStatics.hpp"
 
 
 CEngine::CEngine() {
@@ -9,7 +10,8 @@ CEngine::CEngine() {
 }
 
 void CEngine::Initialize() {
-    CLog::Init();
+    EngineStatics::Log = new CLog();
+    EngineStatics::Log->Initialize();
 
     Renderer = new CRenderer();
     Renderer->OnWindowClosed.Bind(this, &CEngine::OnWindowClosed);

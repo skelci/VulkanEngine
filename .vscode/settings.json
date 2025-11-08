@@ -78,6 +78,11 @@
         "variant": "cpp",
         "set": "cpp",
         "*.tcc": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "unordered_set": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp"
     }
 }

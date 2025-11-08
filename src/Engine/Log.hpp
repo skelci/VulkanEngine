@@ -2,6 +2,7 @@
 
 #include "Core/Delegate.hpp"
 
+#include <array>
 #include <string_view>
 
 
@@ -13,14 +14,18 @@ enum class ELogLevel {
 
 class CLog {
 public:
-    static void Init();
-    static void Log(std::string_view category, ELogLevel level, std::string_view message);
+    void Initialize();
+    void Log(std::string_view category, ELogLevel level, std::string_view message);
 
-    static std::string LogPath;
-    static TDelegate<std::string_view> OnLogMessage;
+    std::string LogPath = "Saves/Logs";
+    TDelegate<ELogLevel /*LogLevel*/, std::string_view /*Message*/> OnLogMessage;
 
 private:
-    static const std::string LogLevelNames[];
-    static const std::string LogLevelAnsiColors[];
-    static std::string FullLogPath;
+    const std::array<std::string, 3> LogLevelNames = {"Info", "Warning", "Error"};
+    const std::array<std::string, 3> LogLevelAnsiColors = {
+        "\033[0m",  // Info - Default
+        "\033[33m", // Warning - Yellow
+        "\033[31m"  // Error - Red
+    };
+    std::string FullLogPath;
 };

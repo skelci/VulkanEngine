@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 
-#include "Log.hpp"
+#include "EngineStatics.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
@@ -225,6 +225,18 @@ void CRenderer::CreateSwapChain() {
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
     swapChainImages.resize(imageCount);
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+
+    inFlightImages.assign(swapChainImages.size(), VK_NULL_HANDLE);
+
+    VkSemaphoreCreateInfo presentationSemaphoreInfo{};
+    presentationSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    presentationSemaphores.resize(swapChainImages.size());
+    for (size_t i = 0; i < presentationSemaphores.size(); ++i) {
+        if (vkCreateSemaphore(device, &presentationSemaphoreInfo, nullptr, &presentationSemaphores[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create presentation semaphore!");
+        }
+    }
 
     swapChainImageFormat = surfaceFormat.format;
     swapChainExtent = extent;
@@ -615,6 +627,9 @@ void CRenderer::CreateTextureSampler() {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
+    VkPhysicalDeviceFeatures supported{};
+    vkGetPhysicalDeviceFeatures(physicalDevice, &supported);
+
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -622,8 +637,8 @@ void CRenderer::CreateTextureSampler() {
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.anisotropyEnable = supported.samplerAnisotropy ? VK_TRUE : VK_FALSE;
+    samplerInfo.maxAnisotropy = supported.samplerAnisotropy ? properties.limits.maxSamplerAnisotropy : 1.0f;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;
@@ -806,7 +821,7 @@ void CRenderer::CreateCommandBuffers() {
     }
 }
 
-void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t frameIndex) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags = 0;                  // Optional
@@ -855,7 +870,7 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
 
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[frameIndex], 0, nullptr);
 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
@@ -866,7 +881,7 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
     }
 }
 
-void CRenderer::UpdateUniformBuffer(uint32_t currentImage) {
+void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
     auto currentTime = std::chrono::high_resolution_clock::now();
@@ -881,12 +896,11 @@ void CRenderer::UpdateUniformBuffer(uint32_t currentImage) {
 
     ubo.proj[1][1] *= -1;
 
-    memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+    memcpy(uniformBuffersMapped[frameIndex], &ubo, sizeof(ubo));
 }
 
 void CRenderer::CreateSyncObjects() {
     imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
     VkSemaphoreCreateInfo semaphoreInfo{};
@@ -898,7 +912,6 @@ void CRenderer::CreateSyncObjects() {
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 
             throw std::runtime_error("failed to create synchronization objects for a frame!");
@@ -1300,6 +1313,7 @@ void CRenderer::CreateLogicalDevice() {
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.sampleRateShading = VK_TRUE;
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -1337,25 +1351,30 @@ void CRenderer::DrawFrame() {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
+    if (inFlightImages[imageIndex] != VK_NULL_HANDLE) {
+        vkWaitForFences(device, 1, &inFlightImages[imageIndex], VK_TRUE, UINT64_MAX);
+    }
+    inFlightImages[imageIndex] = inFlightFences[currentFrame];
+
     vkResetFences(device, 1, &inFlightFences[currentFrame]);
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-    RecordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+    RecordCommandBuffer(commandBuffers[currentFrame], imageIndex, currentFrame);
 
     UpdateUniformBuffer(currentFrame);
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
     VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+    VkSemaphore signalSemaphore = presentationSemaphores[imageIndex];
+    VkSemaphore signalSemaphores[] = {signalSemaphore};
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
-
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -1418,7 +1437,6 @@ void CRenderer::Cleanup() {
     vkDestroyRenderPass(device, renderPass, nullptr);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(device, inFlightFences[i], nullptr);
     }
@@ -1439,6 +1457,12 @@ void CRenderer::Cleanup() {
 }
 
 void CRenderer::CleanupSwapChain() {
+    for (VkSemaphore semaphore : presentationSemaphores) {
+        vkDestroySemaphore(device, semaphore, nullptr);
+    }
+    presentationSemaphores.clear();
+    inFlightImages.clear();
+
     vkDestroyImageView(device, colorImageView, nullptr);
     vkDestroyImage(device, colorImage, nullptr);
     vkFreeMemory(device, colorImageMemory, nullptr);
@@ -1620,7 +1644,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL CRenderer::DebugCallback(VkDebugUtilsMessageSever
         level = Info;
     }
 
-    CLog::Log("Renderer", level, pCallbackData->pMessage);
+    EngineStatics::Log->Log("Renderer", level, pCallbackData->pMessage);
     return VK_FALSE;
 }
 

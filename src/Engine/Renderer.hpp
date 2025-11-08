@@ -108,8 +108,8 @@ private:
     void CreateLogicalDevice();
 
     void DrawFrame();
-    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-    void UpdateUniformBuffer(uint32_t currentImage);
+    void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, uint32_t frameIndex);
+    void UpdateUniformBuffer(uint32_t frameIndex);
 
     void Cleanup();
     void CleanupSwapChain();
@@ -169,9 +169,10 @@ private:
     uint32_t currentFrame = 0;
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-
+    std::vector<VkSemaphore> presentationSemaphores;
     std::vector<VkFence> inFlightFences;
+    std::vector<VkFence> inFlightImages;
+
     bool framebufferResized = false;
 
     VkDebugUtilsMessengerEXT debugMessenger;
