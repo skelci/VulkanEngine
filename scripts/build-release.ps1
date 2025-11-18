@@ -1,6 +1,5 @@
 $ErrorActionPreference = "Stop"
 
-# Use MSYS2 UCRT64 toolchain
 $ucrt = "C:\msys64\ucrt64\bin"
 $env:Path = "$ucrt;$env:Path"
 
@@ -12,5 +11,3 @@ cmake -S . -B build -G "Ninja" `
   -DCMAKE_PREFIX_PATH="C:/msys64/ucrt64"
 
 cmake --build build --config Release
-
-./scripts/compile-shaders

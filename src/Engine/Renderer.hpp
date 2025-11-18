@@ -52,13 +52,10 @@ public:
 
     void Tick(float DeltaTime);
 
-    SDelegate OnWindowClosed;
-
 private:
     void BeginPlay();
     void EndPlay();
 
-    void InitWindow();
     static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     void InitVulkan();
     void CreateInstance();
@@ -212,8 +209,6 @@ private:
 
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    const uint32_t WIDTH = 1600;
-    const uint32_t HEIGHT = 900;
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
     const std::string MODEL_PATH = "res/viking_room/viking_room.obj";

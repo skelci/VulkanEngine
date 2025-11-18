@@ -56,33 +56,19 @@ CRenderer::~CRenderer() {
 }
 
 void CRenderer::Tick(float DeltaTime) {
-    glfwPollEvents();
     DrawFrame();
-
-    if (glfwWindowShouldClose(window)) {
-        OnWindowClosed.Broadcast();
-    }
 }
 
 void CRenderer::BeginPlay() {
-    InitWindow();
+    window = GEngine->GetWindow();
+
+    glfwSetFramebufferSizeCallback(GEngine->GetWindow(), FramebufferResizeCallback);
     InitVulkan();
 }
 
 void CRenderer::EndPlay() {
     vkDeviceWaitIdle(device);
     Cleanup();
-}
-
-void CRenderer::InitWindow() {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-    glfwSetWindowUserPointer(window, this);
-    glfwSetFramebufferSizeCallback(window, FramebufferResizeCallback);
 }
 
 void CRenderer::FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
@@ -1644,7 +1630,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL CRenderer::DebugCallback(VkDebugUtilsMessageSever
         level = Info;
     }
 
-    EngineStatics::Log->Log("Renderer", level, pCallbackData->pMessage);
+    Log("Renderer", level, pCallbackData->pMessage);
     return VK_FALSE;
 }
 

@@ -2,6 +2,8 @@
 
 #include "Renderer.hpp"
 
+#include "GLFW/glfw3.h"
+
 
 class CEngine {
 public:
@@ -13,8 +15,15 @@ private:
     void Shutdown();
 
     bool IsRunning = true;
+    
+    GLFWwindow* Window;
+    void CreateWindow();
 
+public:
+    GLFWwindow* GetWindow() const { return Window; }
+    
+private:
     CRenderer* Renderer;
 
-    void OnWindowClosed();
+    void OnEscapePressed();
 };

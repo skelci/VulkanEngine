@@ -1,6 +1,6 @@
 #include "EngineStatics.hpp"
 
-namespace EngineStatics {
-    CEngine* Engine = nullptr;
-    CLog* Log = nullptr;
-}
+
+CEngine* GEngine = nullptr;
+CLog* GLog = nullptr;
+CInputManager* GInputManager = nullptr;

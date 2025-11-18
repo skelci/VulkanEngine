@@ -1,9 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-# Use MSYS2 UCRT64 toolchain
 $ucrt = "C:\msys64\ucrt64\bin"
 $env:Path = "$ucrt;$env:Path"
-$env:VK_INSTANCE_LAYERS = "VK_LAYER_KHRONOS_validation"
 
 cmake -S . -B build -G "Ninja" `
   -DCMAKE_BUILD_TYPE=Debug `
