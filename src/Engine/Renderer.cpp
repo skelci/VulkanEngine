@@ -1272,6 +1272,7 @@ int CRenderer::RateDeviceSuitability(VkPhysicalDevice device) {
 
     // Discrete GPUs have a significant performance advantage
     if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        if (!AllowDedicatedGPUs) return 0;
         score += 1000;
     }
 
