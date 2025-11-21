@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 
 #include "EngineStatics.hpp"
+#include "Camera.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
@@ -876,9 +877,10 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     SUniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    const STransform& camTransform = ActiveCamera->Transform;
+    ubo.view = glm::lookAt(camTransform.Position, camTransform.Position + camTransform.Rotation.GetForwardVector(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+    ubo.proj = glm::perspective(glm::radians(ActiveCamera->FOV/2), swapChainExtent.width / (float)swapChainExtent.height, ActiveCamera->NearClip, ActiveCamera->FarClip);
 
     ubo.proj[1][1] *= -1;
 

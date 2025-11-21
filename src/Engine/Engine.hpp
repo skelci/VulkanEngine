@@ -4,6 +4,10 @@
 
 #include "GLFW/glfw3.h"
 
+#include <memory>
+
+class ACamera;
+
 
 class CEngine {
 public:
@@ -21,6 +25,7 @@ private:
 
 public:
     GLFWwindow* GetWindow() const { return Window; }
+    void inline SetActiveCamera(std::shared_ptr<ACamera> Camera) { Renderer->SetActiveCamera(Camera); }
     
 private:
     CRenderer* Renderer;

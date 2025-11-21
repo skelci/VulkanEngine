@@ -1,6 +1,6 @@
 #include "InputManager.hpp"
 
-#include "CoreMinimals.hpp"
+#include "CoreMinimal.hpp"
 #include "GLFW/glfw3.h"
 
 #include <algorithm>

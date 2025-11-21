@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Delegate.hpp"
+#include "Delegate.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -12,6 +12,9 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <memory>
+
+class ACamera;
 
 
 struct QueueFamilyIndices {
@@ -51,6 +54,8 @@ public:
     ~CRenderer();
 
     void Tick(float DeltaTime);
+
+    void inline SetActiveCamera(std::shared_ptr<ACamera> Camera) { ActiveCamera = Camera; }
 
 private:
     void BeginPlay();
@@ -138,6 +143,8 @@ private:
     static void DestroyDebugUtilsMessengerEXT(
         VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
         const VkAllocationCallbacks* pAllocator);
+
+    std::shared_ptr<ACamera> ActiveCamera;
 
     GLFWwindow* window;
     VkInstance instance;

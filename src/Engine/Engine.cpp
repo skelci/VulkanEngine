@@ -1,6 +1,7 @@
 #include "Engine.hpp"
 
 #include "EngineStatics.hpp"
+#include "Camera.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -29,7 +30,7 @@ void CEngine::Initialize() {
     Renderer = new CRenderer();
 
     SInputMappingContext* EngineMappingContext = new SInputMappingContext();
-    EngineMappingContext->AddMapping(EKeys::Escape, INPUT_ACTION(
+    EngineMappingContext->AddMapping(EKeys::Escape, MAKE_INPUT_ACTION(
         EInputValueType::Digital,
         EInputEvent::Pressed,
         this,
@@ -37,6 +38,8 @@ void CEngine::Initialize() {
     ));
 
     GInputManager->AddMappingContext(std::shared_ptr<SInputMappingContext>(EngineMappingContext));
+
+    SetActiveCamera(std::make_shared<ACamera>());
 }
 
 void CEngine::MainLoop() {

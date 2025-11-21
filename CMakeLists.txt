@@ -18,6 +18,9 @@ add_executable(VulkanEngine ${SOURCES})
 
 target_include_directories(VulkanEngine PRIVATE "C:/msys64/ucrt64/include")
 target_include_directories(VulkanEngine PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(VulkanEngine PRIVATE ${CMAKE_SOURCE_DIR}/src/Engine)
+target_include_directories(VulkanEngine PRIVATE ${CMAKE_SOURCE_DIR}/src/Engine/Actors)
+target_include_directories(VulkanEngine PRIVATE ${CMAKE_SOURCE_DIR}/src/Engine/Core)
 
 target_link_libraries(VulkanEngine PRIVATE
     Vulkan::Vulkan

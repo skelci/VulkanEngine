@@ -83,7 +83,7 @@ struct SInputAction {
     }
 };
 
-#define INPUT_ACTION(ValueType, ...) \
+#define MAKE_INPUT_ACTION(ValueType, ...) \
     SInputAction::Create<ValueType>(__VA_ARGS__)
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core/Delegate.hpp"
+#include "Delegate.hpp"
+#include "Rotator.hpp"
 #include "EngineStatics.hpp"
 
 #include <glm/glm.hpp>
