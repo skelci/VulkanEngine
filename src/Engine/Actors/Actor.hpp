@@ -3,9 +3,9 @@
 #include "CoreMinimal.hpp"
 
 struct STransform {
-    glm::vec3 Position = glm::vec3(0);
+    SVector Position = SVector(0);
     SRotator Rotation = SRotator();
-    glm::vec3 Scale = glm::vec3(1);
+    SVector Scale = SVector(1);
 };
 
 

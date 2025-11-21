@@ -1,7 +1,7 @@
 #include "Renderer.hpp"
 
-#include "EngineStatics.hpp"
 #include "Camera.hpp"
+#include "EngineStatics.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
@@ -396,7 +396,7 @@ void CRenderer::CreateGraphicsPipeline() {
     viewport.x = 0.0f;
     viewport.y = 0.0f;
     viewport.width = (float)swapChainExtent.width;
-    viewport.height = (float)swapChainExtent.height;
+    viewport.height = -(float)swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
@@ -875,13 +875,13 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     SUniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    const STransform& camTransform = ActiveCamera->Transform;
-    ubo.view = glm::lookAt(camTransform.Position, camTransform.Position + camTransform.Rotation.GetForwardVector(), glm::vec3(0.0f, 0.0f, 1.0f));
+    STransform camTransform = ActiveCamera->Transform;
+    camTransform.Position *= SVector(1, -1, 1);
 
-    ubo.proj = glm::perspective(glm::radians(ActiveCamera->FOV/2), swapChainExtent.width / (float)swapChainExtent.height, ActiveCamera->NearClip, ActiveCamera->FarClip);
-
+    ubo.view = glm::lookAt(camTransform.Position.ToGLMVec3(), (camTransform.Position + camTransform.Rotation.GetForwardVector()).ToGLMVec3(), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(ActiveCamera->FOV / 2), swapChainExtent.width / (float)swapChainExtent.height, ActiveCamera->NearClip, ActiveCamera->FarClip);
     ubo.proj[1][1] *= -1;
 
     memcpy(uniformBuffersMapped[frameIndex], &ubo, sizeof(ubo));

@@ -1,6 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
+#include <string>
+
+struct SVector;
+
 
 struct SRotator {
     float Pitch;
@@ -11,6 +14,10 @@ struct SRotator {
     SRotator(float uniform) : Pitch(uniform), Yaw(uniform), Roll(uniform) {}
     SRotator(float pitch, float yaw, float roll) : Pitch(pitch), Yaw(yaw), Roll(roll) {}
 
-    glm::vec3 GetVector() const { return glm::vec3(Pitch, Yaw, Roll); }
-    glm::vec3 GetForwardVector() const;
+    SRotator AsRadians() const;
+
+    SVector ToVector() const;
+    SVector GetForwardVector() const;
+
+    std::string ToString() const;
 };

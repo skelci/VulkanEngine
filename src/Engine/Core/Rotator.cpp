@@ -1,10 +1,26 @@
 #include "Rotator.hpp"
 
-glm::vec3 SRotator::GetForwardVector() const {
-    float CP = glm::cos(glm::radians(Pitch));
-    float SP = glm::sin(glm::radians(Pitch));
-    float CY = glm::cos(glm::radians(Yaw));
-    float SY = glm::sin(glm::radians(Yaw));
+#include "Math.hpp"
+#include "Vector.hpp"
 
-    return glm::vec3(CP * CY, CP * SY, SP);
+
+SRotator SRotator::AsRadians() const {
+    return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll));
+}
+
+SVector SRotator::ToVector() const {
+    return SVector(Pitch, Yaw, Roll);
+}
+
+SVector SRotator::GetForwardVector() const {
+    float CP = std::cos(ToRadians(Pitch));
+    float SP = std::sin(ToRadians(Pitch));
+    float CY = std::cos(ToRadians(Yaw));
+    float SY = std::sin(ToRadians(Yaw));
+
+    return SVector(CP * CY, CP * SY, SP);
+}
+
+std::string SRotator::ToString() const {
+    return "SRotator(" + std::to_string(Pitch) + ", " + std::to_string(Yaw) + ", " + std::to_string(Roll) + ")";
 }
