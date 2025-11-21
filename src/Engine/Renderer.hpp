@@ -229,6 +229,8 @@ private:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     };
 
+    const bool AllowDedicatedGPUs = false;
+
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
 #else
