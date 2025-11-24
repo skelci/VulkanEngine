@@ -14,6 +14,9 @@ struct SRotator {
     SRotator(float uniform) : Pitch(uniform), Yaw(uniform), Roll(uniform) {}
     SRotator(float pitch, float yaw, float roll) : Pitch(pitch), Yaw(yaw), Roll(roll) {}
 
+    SRotator operator+(const SRotator& Other) const;
+    SRotator& operator+=(const SRotator& Other);
+
     SRotator AsRadians() const;
 
     SVector ToVector() const;

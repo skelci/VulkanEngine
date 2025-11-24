@@ -139,20 +139,20 @@ SVector SVector::GetRotated(const SRotator& Rotator) const {
     const float CR = std::cos(RotatorRad.Roll);
     const float SR = std::sin(RotatorRad.Roll);
 
-    // Combined rotation matrix
-    const float M00 = CY * CR;
-    const float M01 = CY * SR * SP - SY * CP;
-    const float M02 = CY * SR * CP + SY * SP;
+    // Z-Up Rotation Matrix (Yaw=Z, Pitch=Y, Roll=X)
 
-    const float M10 = SY * CR;
-    const float M11 = SY * SR * SP + CY * CP;
-    const float M12 = SY * SR * CP - CY * SP;
+    const float M00 = CY * CP;
+    const float M01 = -CY * SP * SR - SY * CR;
+    const float M02 = -CY * SP * CR + SY * SR;
 
-    const float M20 = -SR;
-    const float M21 = CR * SP;
-    const float M22 = CR * CP;
+    const float M10 = SY * CP;
+    const float M11 = -SY * SP * SR + CY * CR;
+    const float M12 = -SY * SP * CR - CY * SR;
 
-    // Apply rotation
+    const float M20 = SP;
+    const float M21 = CP * SR;
+    const float M22 = CP * CR;
+
     return SVector(
         M00 * X + M01 * Y + M02 * Z,
         M10 * X + M11 * Y + M12 * Z,
@@ -161,6 +161,10 @@ SVector SVector::GetRotated(const SRotator& Rotator) const {
 
 glm::vec3 SVector::ToGLMVec3() const {
     return glm::vec3(X, Y, Z);
+}
+
+SRotator SVector::ToRotator() const {
+    return SRotator(X, Y, Z);
 }
 
 std::string SVector::ToString() const {

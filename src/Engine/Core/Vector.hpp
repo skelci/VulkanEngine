@@ -49,5 +49,6 @@ struct SVector {
     SVector GetRotated(const SRotator& Rotator) const;
 
     glm::vec3 ToGLMVec3() const;
+    SRotator ToRotator() const;
     std::string ToString() const;
 };

@@ -34,12 +34,16 @@ public:
 private:
     CRenderer* Renderer;
 
-    void OnEscapePressed();
-
 public:
     std::shared_ptr<ACamera> Camera;
 
+private:
+    void OnEscapePressed();
+
     void Move(EKeys Key);
     SVector InputVector = SVector(0);
-    SVector InputHeightVector = SVector(0);
+
+    void LookAround(SVector Delta);
+    float FlySpeed = 1;
+    void ScaleFlySpeed(float Amount);
 };

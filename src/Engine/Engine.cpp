@@ -22,10 +22,10 @@ void CEngine::Initialize() {
     GLog = new CLog();
     GLog->Initialize();
 
-    GInputManager = new CInputManager();
-
     glfwInit();
     CreateWindow();
+
+    GInputManager = new CInputManager();
 
     Renderer = new CRenderer();
 
@@ -65,6 +65,16 @@ void CEngine::Initialize() {
                                                    EInputEvent::Triggered,
                                                    this,
                                                    &CEngine::Move, EKeys::E));
+    EngineMappingContext->AddMapping(EKeys::Mouse2D, MAKE_INPUT_ACTION(
+                                                         EInputValueType::Axis2D,
+                                                         EInputEvent::Triggered,
+                                                         this,
+                                                         &CEngine::LookAround));
+    EngineMappingContext->AddMapping(EKeys::MouseWheelAxis, MAKE_INPUT_ACTION(
+                                                                EInputValueType::Axis1D,
+                                                                EInputEvent::Triggered,
+                                                                this,
+                                                                &CEngine::ScaleFlySpeed));
     GInputManager->AddMappingContext(EngineMappingContext);
 
     Camera = std::make_shared<ACamera>();
@@ -85,10 +95,9 @@ void CEngine::MainLoop() {
 
     GInputManager->Tick(deltaTime);
 
-    Camera->Transform.Position += (InputVector.GetRotated(Camera->Transform.Rotation) + InputHeightVector) * deltaTime;
-    Log("Engine", ELogLevel::Info, "Camera Position: " + Camera->Transform.Position.ToString());
+    Camera->Transform.Position += (SVector(InputVector.X, InputVector.Y, 0).GetRotated(Camera->Transform.Rotation) + SVector(0, 0, InputVector.Z)) * FlySpeed * deltaTime;
+
     InputVector = SVector(0);
-    InputHeightVector = SVector(0);
 
     Renderer->Tick(deltaTime);
 }
@@ -126,10 +135,26 @@ void CEngine::Move(EKeys Key) {
         InputVector.Y = 1;
         break;
     case EKeys::Q:
-        InputHeightVector.Z = -1;
+        InputVector.Z = -1;
         break;
     case EKeys::E:
-        InputHeightVector.Z = 1;
+        InputVector.Z = 1;
         break;
     }
+}
+
+void CEngine::LookAround(SVector Delta) {
+    SRotator& CameraRotation = Camera->Transform.Rotation;
+    const SVector ScaledDelta = Delta * 0.1;
+    CameraRotation += SRotator(-ScaledDelta.Y, ScaledDelta.X, 0);
+    if (CameraRotation.Pitch > 89.9f) {
+        CameraRotation.Pitch = 89.9f;
+    }
+    if (CameraRotation.Pitch < -89.9f) {
+        CameraRotation.Pitch = -89.9f;
+    }
+}
+
+void CEngine::ScaleFlySpeed(float Amount) {
+    FlySpeed *= 1 + Amount * 0.1f;
 }

@@ -428,8 +428,7 @@ void CRenderer::CreateGraphicsPipeline() {
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-
+    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f; // Optional
     rasterizer.depthBiasClamp = 0.0f;          // Optional
@@ -877,10 +876,17 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     SUniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    STransform camTransform = ActiveCamera->Transform;
-    camTransform.Position *= SVector(1, -1, 1);
+    const STransform camTransform = ActiveCamera->Transform;
 
-    ubo.view = glm::lookAt(camTransform.Position.ToGLMVec3(), (camTransform.Position + camTransform.Rotation.GetForwardVector()).ToGLMVec3(), glm::vec3(0.0f, 0.0f, 1.0f));
+    // Flip Y for Left-Handed coordinate system (Y=Right)
+    SVector eye = camTransform.Position;
+    SVector center = camTransform.Position + camTransform.Rotation.GetForwardVector();
+    eye.Y *= -1;
+    center.Y *= -1;
+
+    ubo.view = glm::lookAt(eye.ToGLMVec3(), center.ToGLMVec3(), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = ubo.view * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f));
+
     ubo.proj = glm::perspective(glm::radians(ActiveCamera->FOV / 2), swapChainExtent.width / (float)swapChainExtent.height, ActiveCamera->NearClip, ActiveCamera->FarClip);
     ubo.proj[1][1] *= -1;
 

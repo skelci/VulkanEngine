@@ -4,6 +4,17 @@
 #include "Vector.hpp"
 
 
+SRotator SRotator::operator+(const SRotator& Other) const {
+    return SRotator(Pitch + Other.Pitch, Yaw + Other.Yaw, Roll + Other.Roll);
+}
+
+SRotator& SRotator::operator+=(const SRotator& Other) {
+    Pitch += Other.Pitch;
+    Yaw += Other.Yaw;
+    Roll += Other.Roll;
+    return *this;
+}
+
 SRotator SRotator::AsRadians() const {
     return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll));
 }

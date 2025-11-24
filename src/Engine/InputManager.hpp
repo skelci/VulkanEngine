@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glm/glm.hpp"
+#include "Vector.hpp"
 
 #include <functional>
 #include <memory>
@@ -81,7 +81,7 @@ enum class EInputEvent : uint8_t {
 
 using FDigitalAction = std::function<void()>;
 using FAxis1DAction = std::function<void(float)>;
-using FAxis2DAction = std::function<void(glm::vec2)>;
+using FAxis2DAction = std::function<void(SVector)>;
 
 using FInputCallback = std::variant<std::monostate, FDigitalAction, FAxis1DAction, FAxis2DAction>;
 
@@ -119,9 +119,9 @@ struct SInputAction {
                            tupleArgs);
             });
         } else {
-            static_assert(std::is_invocable_v<MemFn, Obj*, glm::vec2, Args...>,
+            static_assert(std::is_invocable_v<MemFn, Obj*, SVector, Args...>,
                           "Axis2D callback must be callable as member(vec2, args...)");
-            action.Callback = FAxis2DAction([object, fn, tupleArgs = std::move(tupleArgs)](glm::vec2 axis) mutable {
+            action.Callback = FAxis2DAction([object, fn, tupleArgs = std::move(tupleArgs)](SVector axis) mutable {
                 std::apply([object, fn, axis](auto&&... unpacked) {
                     std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
                 },
@@ -140,17 +140,11 @@ struct SInputAction {
 struct SInputMappingContext {
     uint16_t Priority = 0;
 
-    void AddMapping(EKeys Key, const SInputAction& Action) {
-        KeyMappings[Key] = Action;
-    }
+    void AddMapping(EKeys Key, const SInputAction& Action);
 
-    void RemoveMapping(EKeys Key) {
-        KeyMappings.erase(Key);
-    }
+    void RemoveMapping(EKeys Key);
 
-    inline const std::unordered_map<EKeys, SInputAction>& GetMappings() const {
-        return KeyMappings;
-    }
+    inline const std::unordered_map<EKeys, SInputAction>& GetMappings() const { return KeyMappings; }
 
 private:
     std::unordered_map<EKeys, SInputAction> KeyMappings;
@@ -159,6 +153,8 @@ private:
 
 class CInputManager {
 public:
+    CInputManager();
+
     void Tick(float DeltaTime);
 
     void AddMappingContext(std::shared_ptr<SInputMappingContext> Context);
@@ -173,4 +169,11 @@ private:
 
     std::unordered_set<EKeys> ThisFrameDigitalKeys;
     std::unordered_set<EKeys> PreviousFrameDigitalKeys;
+
+    static void OnScroll(float delta);
+    static void OnCursor(SVector delta);
+
+    float ScrollDelta = 0;
+    SVector CursorPosition = SVector();
+    SVector PreviousCursorPosition = SVector();
 };

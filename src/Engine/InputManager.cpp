@@ -60,6 +60,17 @@ static const std::unordered_map<EKeys, uint32_t> KeyToGLFWCode = {
     {EKeys::MouseMiddle, GLFW_MOUSE_BUTTON_MIDDLE},
 };
 
+CInputManager::CInputManager() {
+    glfwSetScrollCallback(GEngine->GetWindow(), [](GLFWwindow*, double xoff, double yoff) {
+        CInputManager::OnScroll(static_cast<float>(yoff));
+    });
+    glfwSetCursorPosCallback(GEngine->GetWindow(), [](GLFWwindow*, double x, double y) {
+        CInputManager::OnCursor(SVector(x, y, 0));
+    });
+
+    glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
 void CInputManager::Tick(float DeltaTime) {
     std::sort(MappingContexts.begin(), MappingContexts.end(),
               [](const std::shared_ptr<SInputMappingContext>& a, const std::shared_ptr<SInputMappingContext>& b) {
@@ -84,6 +95,9 @@ void CInputManager::Tick(float DeltaTime) {
 
     PreviousFrameDigitalKeys = ThisFrameDigitalKeys;
     ThisFrameDigitalKeys.clear();
+
+    PreviousCursorPosition = CursorPosition;
+    ScrollDelta = 0;
 }
 
 void CInputManager::AddMappingContext(std::shared_ptr<SInputMappingContext> Context) {
@@ -130,9 +144,41 @@ void CInputManager::ProcessDigitalInput(EKeys Key, SInputAction Action) {
 }
 
 void CInputManager::ProcessAxis1DInput(EKeys Key, SInputAction Action) {
-    // TODO
+    auto callback = std::get<FAxis1DAction>(Action.Callback);
+    assert(callback && "Axis1D action callback is not set");
+
+    if (ScrollDelta == 0) return;
+
+    if (Key == EKeys::MouseWheelAxis) {
+        callback(ScrollDelta);
+    }
 }
 
 void CInputManager::ProcessAxis2DInput(EKeys Key, SInputAction Action) {
-    // TODO
+    auto callback = std::get<FAxis2DAction>(Action.Callback);
+    assert(callback && "Axis2D action callback is not set");
+
+    const SVector delta = CursorPosition - PreviousCursorPosition;
+
+    if (delta.X == 0 && delta.Y == 0) return;
+
+    if (Key == EKeys::Mouse2D) {
+        callback(delta);
+    }
+}
+
+void CInputManager::OnScroll(float delta) {
+    GInputManager->ScrollDelta = delta;
+}
+
+void CInputManager::OnCursor(SVector delta) {
+    GInputManager->CursorPosition = delta;
+}
+
+void SInputMappingContext::AddMapping(EKeys Key, const SInputAction& Action) {
+    KeyMappings[Key] = Action;
+}
+
+void SInputMappingContext::RemoveMapping(EKeys Key) {
+    KeyMappings.erase(Key);
 }
