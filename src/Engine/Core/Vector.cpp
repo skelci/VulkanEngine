@@ -1,7 +1,134 @@
 #include "Vector.hpp"
 
-#include "Math.hpp"
 #include "Rotator.hpp"
+
+
+SVector2 SVector2::operator+(const SVector2& Other) const {
+    return SVector2(X + Other.X, Y + Other.Y);
+}
+
+SVector2 SVector2::operator+(double Scalar) const {
+    return SVector2(X + Scalar, Y + Scalar);
+}
+
+SVector2 SVector2::operator-(const SVector2& Other) const {
+    return SVector2(X - Other.X, Y - Other.Y);
+}
+
+SVector2 SVector2::operator-(double Scalar) const {
+    return SVector2(X - Scalar, Y - Scalar);
+}
+
+SVector2 SVector2::operator*(const SVector2& Other) const {
+    return SVector2(X * Other.X, Y * Other.Y);
+}
+
+SVector2 SVector2::operator*(double Scalar) const {
+    return SVector2(X * Scalar, Y * Scalar);
+}
+
+SVector2 SVector2::operator/(const SVector2& Other) const {
+    return SVector2(X / Other.X, Y / Other.Y);
+}
+
+SVector2 SVector2::operator/(double Scalar) const {
+    const double InvScalar = 1 / Scalar;
+    return SVector2(X * InvScalar, Y * InvScalar);
+}
+
+SVector2& SVector2::operator+=(const SVector2& Other) {
+    X += Other.X;
+    Y += Other.Y;
+    return *this;
+}
+
+SVector2& SVector2::operator+=(double Scalar) {
+    X += Scalar;
+    Y += Scalar;
+    return *this;
+}
+
+SVector2& SVector2::operator-=(const SVector2& Other) {
+    X -= Other.X;
+    Y -= Other.Y;
+    return *this;
+}
+
+SVector2& SVector2::operator-=(double Scalar) {
+    X -= Scalar;
+    Y -= Scalar;
+    return *this;
+}
+
+SVector2& SVector2::operator*=(const SVector2& Other) {
+    X *= Other.X;
+    Y *= Other.Y;
+    return *this;
+}
+
+SVector2& SVector2::operator*=(double Scalar) {
+    X *= Scalar;
+    Y *= Scalar;
+    return *this;
+}
+
+SVector2& SVector2::operator/=(const SVector2& Other) {
+    X /= Other.X;
+    Y /= Other.Y;
+    return *this;
+}
+
+SVector2& SVector2::operator/=(double Scalar) {
+    const double InvScalar = 1 / Scalar;
+    X *= InvScalar;
+    Y *= InvScalar;
+    return *this;
+}
+
+double SVector2::LengthSquared() const {
+    return X * X + Y * Y;
+}
+
+double SVector2::Length() const {
+    return std::sqrt(LengthSquared());
+}
+
+SVector2 SVector2::GetNormalized() const {
+    const double InvLen = 1 / Length();
+    return SVector2(X * InvLen, Y * InvLen);
+}
+
+SVector2 SVector2::GetSafeNormalized(double Tolerance) const {
+    const double Len = Length();
+    if (Len < Tolerance) {
+        return SVector2();
+    }
+    const double InvLen = 1.0 / Len;
+    return SVector2(X * InvLen, Y * InvLen);
+}
+
+SVector2 SVector2::GetAbs() const {
+    return SVector2(std::abs(X), std::abs(Y));
+}
+
+double SVector2::Dot(const SVector2& Other) const {
+    return X * Other.X + Y * Other.Y;
+}
+
+SVector2 SVector2::Cross(const SVector2& Other) const {
+    return SVector2(X * Other.Y - Y * Other.X, Y * Other.X - X * Other.Y);
+}
+
+SVector2 SVector2::GetRotated(const float Angle) const {
+    const float Rad = ToRadians(Angle);
+    const float CosA = std::cos(Rad);
+    const float SinA = std::sin(Rad);
+    return SVector2(X * CosA - Y * SinA, X * SinA + Y * CosA);
+}
+
+std::string SVector2::ToString() const {
+    return "SVector2(" + std::to_string(X) + ", " + std::to_string(Y) + ")";
+}
 
 
 SVector SVector::operator+(const SVector& Other) const {
@@ -33,7 +160,8 @@ SVector SVector::operator/(const SVector& Other) const {
 }
 
 SVector SVector::operator/(double Scalar) const {
-    return SVector(X / Scalar, Y / Scalar, Z / Scalar);
+    const double InvScalar = 1 / Scalar;
+    return SVector(X * InvScalar, Y * InvScalar, Z * InvScalar);
 }
 
 SVector& SVector::operator+=(const SVector& Other) {
@@ -86,9 +214,10 @@ SVector& SVector::operator/=(const SVector& Other) {
 }
 
 SVector& SVector::operator/=(double Scalar) {
-    X /= Scalar;
-    Y /= Scalar;
-    Z /= Scalar;
+    const double InvScalar = 1 / Scalar;
+    X *= InvScalar;
+    Y *= InvScalar;
+    Z *= InvScalar;
     return *this;
 }
 
@@ -101,15 +230,17 @@ double SVector::Length() const {
 }
 
 SVector SVector::GetNormalized() const {
-    return SVector(X / Length(), Y / Length(), Z / Length());
+    const double InvLen = 1 / Length();
+    return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
 
 SVector SVector::GetSafeNormalized(double Tolerance) const {
     const double Len = Length();
-    if (Len > Tolerance) {
-        return SVector(X / Len, Y / Len, Z / Len);
+    if (Len < Tolerance) {
+        return SVector();
     }
-    return SVector();
+    const double InvLen = 1.0 / Len;
+    return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
 
 SVector SVector::GetAbs() const {

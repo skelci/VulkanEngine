@@ -81,7 +81,7 @@ enum class EInputEvent : uint8_t {
 
 using FDigitalAction = std::function<void()>;
 using FAxis1DAction = std::function<void(float)>;
-using FAxis2DAction = std::function<void(SVector)>;
+using FAxis2DAction = std::function<void(SVector2)>;
 
 using FInputCallback = std::variant<std::monostate, FDigitalAction, FAxis1DAction, FAxis2DAction>;
 
@@ -119,9 +119,9 @@ struct SInputAction {
                            tupleArgs);
             });
         } else {
-            static_assert(std::is_invocable_v<MemFn, Obj*, SVector, Args...>,
+            static_assert(std::is_invocable_v<MemFn, Obj*, SVector2, Args...>,
                           "Axis2D callback must be callable as member(vec2, args...)");
-            action.Callback = FAxis2DAction([object, fn, tupleArgs = std::move(tupleArgs)](SVector axis) mutable {
+            action.Callback = FAxis2DAction([object, fn, tupleArgs = std::move(tupleArgs)](SVector2 axis) mutable {
                 std::apply([object, fn, axis](auto&&... unpacked) {
                     std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
                 },
@@ -171,9 +171,9 @@ private:
     std::unordered_set<EKeys> PreviousFrameDigitalKeys;
 
     static void OnScroll(float delta);
-    static void OnCursor(SVector delta);
+    static void OnCursor(SVector2 delta);
 
     float ScrollDelta = 0;
-    SVector CursorPosition = SVector();
-    SVector PreviousCursorPosition = SVector();
+    SVector2 CursorPosition = SVector2();
+    SVector2 PreviousCursorPosition = SVector2();
 };

@@ -143,9 +143,9 @@ void CEngine::Move(EKeys Key) {
     }
 }
 
-void CEngine::LookAround(SVector Delta) {
+void CEngine::LookAround(SVector2 Delta) {
     SRotator& CameraRotation = Camera->Transform.Rotation;
-    const SVector ScaledDelta = Delta * 0.1;
+    const SVector2 ScaledDelta = Delta * 0.1;
     CameraRotation += SRotator(-ScaledDelta.Y, ScaledDelta.X, 0);
     if (CameraRotation.Pitch > 89.9f) {
         CameraRotation.Pitch = 89.9f;

@@ -43,7 +43,7 @@ private:
     void Move(EKeys Key);
     SVector InputVector = SVector(0);
 
-    void LookAround(SVector Delta);
+    void LookAround(SVector2 Delta);
     float FlySpeed = 1;
     void ScaleFlySpeed(float Amount);
 };

@@ -65,7 +65,7 @@ CInputManager::CInputManager() {
         CInputManager::OnScroll(static_cast<float>(yoff));
     });
     glfwSetCursorPosCallback(GEngine->GetWindow(), [](GLFWwindow*, double x, double y) {
-        CInputManager::OnCursor(SVector(x, y, 0));
+        CInputManager::OnCursor(SVector2(x, y));
     });
 
     glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -158,7 +158,7 @@ void CInputManager::ProcessAxis2DInput(EKeys Key, SInputAction Action) {
     auto callback = std::get<FAxis2DAction>(Action.Callback);
     assert(callback && "Axis2D action callback is not set");
 
-    const SVector delta = CursorPosition - PreviousCursorPosition;
+    const SVector2 delta = CursorPosition - PreviousCursorPosition;
 
     if (delta.X == 0 && delta.Y == 0) return;
 
@@ -171,7 +171,7 @@ void CInputManager::OnScroll(float delta) {
     GInputManager->ScrollDelta = delta;
 }
 
-void CInputManager::OnCursor(SVector delta) {
+void CInputManager::OnCursor(SVector2 delta) {
     GInputManager->CursorPosition = delta;
 }
 
