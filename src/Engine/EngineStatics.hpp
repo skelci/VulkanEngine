@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Log.hpp"
-#include "InputManager.hpp"
 #include "Engine.hpp"
+#include "InputManager.hpp"
+#include "Log.hpp"
 
 extern CEngine* GEngine;
 extern CLog* GLog;

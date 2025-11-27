@@ -30,51 +30,35 @@ void CEngine::Initialize() {
     Renderer = new CRenderer();
 
     std::shared_ptr<SInputMappingContext> EngineMappingContext = std::make_shared<SInputMappingContext>();
-    EngineMappingContext->AddMapping(EKeys::Escape, MAKE_INPUT_ACTION(
-                                                        EInputValueType::Digital,
-                                                        EInputEvent::Pressed,
-                                                        this,
-                                                        &CEngine::OnEscapePressed));
-    EngineMappingContext->AddMapping(EKeys::W, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::W));
-    EngineMappingContext->AddMapping(EKeys::S, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::S));
-    EngineMappingContext->AddMapping(EKeys::A, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::A));
-    EngineMappingContext->AddMapping(EKeys::D, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::D));
-    EngineMappingContext->AddMapping(EKeys::Q, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::Q));
-    EngineMappingContext->AddMapping(EKeys::E, MAKE_INPUT_ACTION(
-                                                   EInputValueType::Digital,
-                                                   EInputEvent::Triggered,
-                                                   this,
-                                                   &CEngine::Move, EKeys::E));
-    EngineMappingContext->AddMapping(EKeys::Mouse2D, MAKE_INPUT_ACTION(
-                                                         EInputValueType::Axis2D,
-                                                         EInputEvent::Triggered,
-                                                         this,
-                                                         &CEngine::LookAround));
-    EngineMappingContext->AddMapping(EKeys::MouseWheelAxis, MAKE_INPUT_ACTION(
-                                                                EInputValueType::Axis1D,
-                                                                EInputEvent::Triggered,
-                                                                this,
-                                                                &CEngine::ScaleFlySpeed));
+    EngineMappingContext->AddMapping(
+        EKeys::Escape,
+        MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Pressed, this, &CEngine::OnEscapePressed)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::W, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::W)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::S, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::S)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::A, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::A)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::D, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::D)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::Q, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::Q)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::E, MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Triggered, this, &CEngine::Move, EKeys::E)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::Mouse2D, MAKE_INPUT_ACTION(EInputValueType::Axis2D, EInputEvent::Triggered, this, &CEngine::LookAround)
+    );
+    EngineMappingContext->AddMapping(
+        EKeys::MouseWheelAxis,
+        MAKE_INPUT_ACTION(EInputValueType::Axis1D, EInputEvent::Triggered, this, &CEngine::ScaleFlySpeed)
+    );
     GInputManager->AddMappingContext(EngineMappingContext);
 
     Camera = std::make_shared<ACamera>();
@@ -95,7 +79,9 @@ void CEngine::MainLoop() {
 
     GInputManager->Tick(deltaTime);
 
-    Camera->Transform.Position += (SVector(InputVector.X, InputVector.Y, 0).GetRotated(Camera->Transform.Rotation) + SVector(0, 0, InputVector.Z)) * FlySpeed * deltaTime;
+    Camera->Transform.Position += (SVector(InputVector.X, InputVector.Y, 0).GetRotated(Camera->Transform.Rotation) +
+                                   SVector(0, 0, InputVector.Z)) *
+                                  FlySpeed * deltaTime;
 
     InputVector = SVector(0);
 
@@ -116,30 +102,16 @@ void CEngine::CreateWindow() {
     glfwSetWindowUserPointer(Window, this);
 }
 
-void CEngine::OnEscapePressed() {
-    IsRunning = false;
-}
+void CEngine::OnEscapePressed() { IsRunning = false; }
 
 void CEngine::Move(EKeys Key) {
     switch (Key) {
-    case EKeys::W:
-        InputVector.X = 1;
-        break;
-    case EKeys::S:
-        InputVector.X = -1;
-        break;
-    case EKeys::A:
-        InputVector.Y = -1;
-        break;
-    case EKeys::D:
-        InputVector.Y = 1;
-        break;
-    case EKeys::Q:
-        InputVector.Z = -1;
-        break;
-    case EKeys::E:
-        InputVector.Z = 1;
-        break;
+    case EKeys::W: InputVector.X = 1; break;
+    case EKeys::S: InputVector.X = -1; break;
+    case EKeys::A: InputVector.Y = -1; break;
+    case EKeys::D: InputVector.Y = 1; break;
+    case EKeys::Q: InputVector.Z = -1; break;
+    case EKeys::E: InputVector.Z = 1; break;
     }
 }
 
@@ -155,6 +127,4 @@ void CEngine::LookAround(SVector2 Delta) {
     }
 }
 
-void CEngine::ScaleFlySpeed(float Amount) {
-    FlySpeed *= 1 + Amount * 0.1f;
-}
+void CEngine::ScaleFlySpeed(float Amount) { FlySpeed *= 1 + Amount * 0.1f; }

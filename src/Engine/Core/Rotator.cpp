@@ -15,13 +15,9 @@ SRotator& SRotator::operator+=(const SRotator& Other) {
     return *this;
 }
 
-SRotator SRotator::AsRadians() const {
-    return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll));
-}
+SRotator SRotator::AsRadians() const { return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll)); }
 
-SVector SRotator::ToVector() const {
-    return SVector(Pitch, Yaw, Roll);
-}
+SVector SRotator::ToVector() const { return SVector(Pitch, Yaw, Roll); }
 
 SVector SRotator::GetForwardVector() const {
     float CP = std::cos(ToRadians(Pitch));

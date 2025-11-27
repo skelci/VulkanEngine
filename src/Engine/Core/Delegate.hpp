@@ -6,29 +6,20 @@
 #include <vector>
 
 
-template <typename... Args>
-class TDelegate {
+template <typename... Args> class TDelegate {
 public:
-    void Bind(void (*fn)(Args...)) {
-        Callbacks.emplace_back(std::make_unique<FreeBinding>(fn));
-    }
+    void Bind(void (*fn)(Args...)) { Callbacks.emplace_back(std::make_unique<FreeBinding>(fn)); }
 
-    template <typename T>
-    void Bind(T* instance, void (T::*method)(Args...)) {
+    template <typename T> void Bind(T* instance, void (T::*method)(Args...)) {
         Callbacks.emplace_back(std::make_unique<MemberBinding<T>>(instance, method));
     }
 
     void Unbind(void (*fn)(Args...)) {
-        RemoveIf([fn](const BindingPtr& b) {
-            return b->Matches(nullptr, &fn);
-        });
+        RemoveIf([fn](const BindingPtr& b) { return b->Matches(nullptr, &fn); });
     }
 
-    template <typename T>
-    void Unbind(T* instance, void (T::*method)(Args...)) {
-        RemoveIf([instance, method](const BindingPtr& b) {
-            return b->Matches(instance, &method);
-        });
+    template <typename T> void Unbind(T* instance, void (T::*method)(Args...)) {
+        RemoveIf([instance, method](const BindingPtr& b) { return b->Matches(instance, &method); });
     }
 
     void Broadcast(Args... params) {
@@ -58,8 +49,7 @@ private:
         Func Fn;
     };
 
-    template <typename T>
-    struct MemberBinding final : IBinding {
+    template <typename T> struct MemberBinding final : IBinding {
         using Method = void (T::*)(Args...);
         MemberBinding(T* inst, Method method) : Instance(inst), MethodPtr(method) {}
         void Invoke(Args... args) override { (Instance->*MethodPtr)(args...); }
@@ -75,11 +65,8 @@ private:
     using BindingPtr = std::unique_ptr<IBinding>;
     std::vector<BindingPtr> Callbacks;
 
-    template <typename Pred>
-    void RemoveIf(Pred&& pred) {
-        Callbacks.erase(std::remove_if(Callbacks.begin(), Callbacks.end(),
-                                       std::forward<Pred>(pred)),
-                        Callbacks.end());
+    template <typename Pred> void RemoveIf(Pred&& pred) {
+        Callbacks.erase(std::remove_if(Callbacks.begin(), Callbacks.end(), std::forward<Pred>(pred)), Callbacks.end());
     }
 };
 

@@ -3,33 +3,19 @@
 #include "Rotator.hpp"
 
 
-SVector2 SVector2::operator+(const SVector2& Other) const {
-    return SVector2(X + Other.X, Y + Other.Y);
-}
+SVector2 SVector2::operator+(const SVector2& Other) const { return SVector2(X + Other.X, Y + Other.Y); }
 
-SVector2 SVector2::operator+(double Scalar) const {
-    return SVector2(X + Scalar, Y + Scalar);
-}
+SVector2 SVector2::operator+(double Scalar) const { return SVector2(X + Scalar, Y + Scalar); }
 
-SVector2 SVector2::operator-(const SVector2& Other) const {
-    return SVector2(X - Other.X, Y - Other.Y);
-}
+SVector2 SVector2::operator-(const SVector2& Other) const { return SVector2(X - Other.X, Y - Other.Y); }
 
-SVector2 SVector2::operator-(double Scalar) const {
-    return SVector2(X - Scalar, Y - Scalar);
-}
+SVector2 SVector2::operator-(double Scalar) const { return SVector2(X - Scalar, Y - Scalar); }
 
-SVector2 SVector2::operator*(const SVector2& Other) const {
-    return SVector2(X * Other.X, Y * Other.Y);
-}
+SVector2 SVector2::operator*(const SVector2& Other) const { return SVector2(X * Other.X, Y * Other.Y); }
 
-SVector2 SVector2::operator*(double Scalar) const {
-    return SVector2(X * Scalar, Y * Scalar);
-}
+SVector2 SVector2::operator*(double Scalar) const { return SVector2(X * Scalar, Y * Scalar); }
 
-SVector2 SVector2::operator/(const SVector2& Other) const {
-    return SVector2(X / Other.X, Y / Other.Y);
-}
+SVector2 SVector2::operator/(const SVector2& Other) const { return SVector2(X / Other.X, Y / Other.Y); }
 
 SVector2 SVector2::operator/(double Scalar) const {
     const double InvScalar = 1 / Scalar;
@@ -85,13 +71,9 @@ SVector2& SVector2::operator/=(double Scalar) {
     return *this;
 }
 
-double SVector2::LengthSquared() const {
-    return X * X + Y * Y;
-}
+double SVector2::LengthSquared() const { return X * X + Y * Y; }
 
-double SVector2::Length() const {
-    return std::sqrt(LengthSquared());
-}
+double SVector2::Length() const { return std::sqrt(LengthSquared()); }
 
 SVector2 SVector2::GetNormalized() const {
     const double InvLen = 1 / Length();
@@ -107,13 +89,9 @@ SVector2 SVector2::GetSafeNormalized(double Tolerance) const {
     return SVector2(X * InvLen, Y * InvLen);
 }
 
-SVector2 SVector2::GetAbs() const {
-    return SVector2(std::abs(X), std::abs(Y));
-}
+SVector2 SVector2::GetAbs() const { return SVector2(std::abs(X), std::abs(Y)); }
 
-double SVector2::Dot(const SVector2& Other) const {
-    return X * Other.X + Y * Other.Y;
-}
+double SVector2::Dot(const SVector2& Other) const { return X * Other.X + Y * Other.Y; }
 
 SVector2 SVector2::Cross(const SVector2& Other) const {
     return SVector2(X * Other.Y - Y * Other.X, Y * Other.X - X * Other.Y);
@@ -126,38 +104,22 @@ SVector2 SVector2::GetRotated(const float Angle) const {
     return SVector2(X * CosA - Y * SinA, X * SinA + Y * CosA);
 }
 
-std::string SVector2::ToString() const {
-    return "SVector2(" + std::to_string(X) + ", " + std::to_string(Y) + ")";
-}
+std::string SVector2::ToString() const { return "SVector2(" + std::to_string(X) + ", " + std::to_string(Y) + ")"; }
 
 
-SVector SVector::operator+(const SVector& Other) const {
-    return SVector(X + Other.X, Y + Other.Y, Z + Other.Z);
-}
+SVector SVector::operator+(const SVector& Other) const { return SVector(X + Other.X, Y + Other.Y, Z + Other.Z); }
 
-SVector SVector::operator+(double Scalar) const {
-    return SVector(X + Scalar, Y + Scalar, Z + Scalar);
-}
+SVector SVector::operator+(double Scalar) const { return SVector(X + Scalar, Y + Scalar, Z + Scalar); }
 
-SVector SVector::operator-(const SVector& Other) const {
-    return SVector(X - Other.X, Y - Other.Y, Z - Other.Z);
-}
+SVector SVector::operator-(const SVector& Other) const { return SVector(X - Other.X, Y - Other.Y, Z - Other.Z); }
 
-SVector SVector::operator-(double Scalar) const {
-    return SVector(X - Scalar, Y - Scalar, Z - Scalar);
-}
+SVector SVector::operator-(double Scalar) const { return SVector(X - Scalar, Y - Scalar, Z - Scalar); }
 
-SVector SVector::operator*(const SVector& Other) const {
-    return SVector(X * Other.X, Y * Other.Y, Z * Other.Z);
-}
+SVector SVector::operator*(const SVector& Other) const { return SVector(X * Other.X, Y * Other.Y, Z * Other.Z); }
 
-SVector SVector::operator*(double Scalar) const {
-    return SVector(X * Scalar, Y * Scalar, Z * Scalar);
-}
+SVector SVector::operator*(double Scalar) const { return SVector(X * Scalar, Y * Scalar, Z * Scalar); }
 
-SVector SVector::operator/(const SVector& Other) const {
-    return SVector(X / Other.X, Y / Other.Y, Z / Other.Z);
-}
+SVector SVector::operator/(const SVector& Other) const { return SVector(X / Other.X, Y / Other.Y, Z / Other.Z); }
 
 SVector SVector::operator/(double Scalar) const {
     const double InvScalar = 1 / Scalar;
@@ -221,13 +183,9 @@ SVector& SVector::operator/=(double Scalar) {
     return *this;
 }
 
-double SVector::LengthSquared() const {
-    return X * X + Y * Y + Z * Z;
-}
+double SVector::LengthSquared() const { return X * X + Y * Y + Z * Z; }
 
-double SVector::Length() const {
-    return std::sqrt(LengthSquared());
-}
+double SVector::Length() const { return std::sqrt(LengthSquared()); }
 
 SVector SVector::GetNormalized() const {
     const double InvLen = 1 / Length();
@@ -243,19 +201,12 @@ SVector SVector::GetSafeNormalized(double Tolerance) const {
     return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
 
-SVector SVector::GetAbs() const {
-    return SVector(std::abs(X), std::abs(Y), std::abs(Z));
-}
+SVector SVector::GetAbs() const { return SVector(std::abs(X), std::abs(Y), std::abs(Z)); }
 
-double SVector::Dot(const SVector& Other) const {
-    return X * Other.X + Y * Other.Y + Z * Other.Z;
-}
+double SVector::Dot(const SVector& Other) const { return X * Other.X + Y * Other.Y + Z * Other.Z; }
 
 SVector SVector::Cross(const SVector& Other) const {
-    return SVector(
-        Y * Other.Z - Z * Other.Y,
-        Z * Other.X - X * Other.Z,
-        X * Other.Y - Y * Other.X);
+    return SVector(Y * Other.Z - Z * Other.Y, Z * Other.X - X * Other.Z, X * Other.Y - Y * Other.X);
 }
 
 SVector SVector::GetRotated(const SRotator& Rotator) const {
@@ -284,19 +235,12 @@ SVector SVector::GetRotated(const SRotator& Rotator) const {
     const float M21 = CP * SR;
     const float M22 = CP * CR;
 
-    return SVector(
-        M00 * X + M01 * Y + M02 * Z,
-        M10 * X + M11 * Y + M12 * Z,
-        M20 * X + M21 * Y + M22 * Z);
+    return SVector(M00 * X + M01 * Y + M02 * Z, M10 * X + M11 * Y + M12 * Z, M20 * X + M21 * Y + M22 * Z);
 }
 
-glm::vec3 SVector::ToGLMVec3() const {
-    return glm::vec3(X, Y, Z);
-}
+glm::vec3 SVector::ToGLMVec3() const { return glm::vec3(X, Y, Z); }
 
-SRotator SVector::ToRotator() const {
-    return SRotator(X, Y, Z);
-}
+SRotator SVector::ToRotator() const { return SRotator(X, Y, Z); }
 
 std::string SVector::ToString() const {
     return "SVector(" + std::to_string(X) + ", " + std::to_string(Y) + ", " + std::to_string(Z) + ")";

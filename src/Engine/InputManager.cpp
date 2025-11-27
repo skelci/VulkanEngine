@@ -72,23 +72,20 @@ CInputManager::CInputManager() {
 }
 
 void CInputManager::Tick(float DeltaTime) {
-    std::sort(MappingContexts.begin(), MappingContexts.end(),
-              [](const std::shared_ptr<SInputMappingContext>& a, const std::shared_ptr<SInputMappingContext>& b) {
-                  return b->Priority > a->Priority; // Lower priority because it could be overridden by higher priority contexts
-              });
+    std::sort(
+        MappingContexts.begin(), MappingContexts.end(),
+        [](const std::shared_ptr<SInputMappingContext>& a, const std::shared_ptr<SInputMappingContext>& b) {
+            return b->Priority >
+                   a->Priority; // Lower priority because it could be overridden by higher priority contexts
+        }
+    );
 
     for (const auto& context : MappingContexts) {
         for (const auto& [key, action] : context->GetMappings()) {
             switch (action.ValueType) {
-            case EInputValueType::Digital:
-                ProcessDigitalInput(key, action);
-                break;
-            case EInputValueType::Axis1D:
-                ProcessAxis1DInput(key, action);
-                break;
-            case EInputValueType::Axis2D:
-                ProcessAxis2DInput(key, action);
-                break;
+            case EInputValueType::Digital: ProcessDigitalInput(key, action); break;
+            case EInputValueType::Axis1D: ProcessAxis1DInput(key, action); break;
+            case EInputValueType::Axis2D: ProcessAxis2DInput(key, action); break;
             }
         }
     }
@@ -167,18 +164,10 @@ void CInputManager::ProcessAxis2DInput(EKeys Key, SInputAction Action) {
     }
 }
 
-void CInputManager::OnScroll(float delta) {
-    GInputManager->ScrollDelta = delta;
-}
+void CInputManager::OnScroll(float delta) { GInputManager->ScrollDelta = delta; }
 
-void CInputManager::OnCursor(SVector2 delta) {
-    GInputManager->CursorPosition = delta;
-}
+void CInputManager::OnCursor(SVector2 delta) { GInputManager->CursorPosition = delta; }
 
-void SInputMappingContext::AddMapping(EKeys Key, const SInputAction& Action) {
-    KeyMappings[Key] = Action;
-}
+void SInputMappingContext::AddMapping(EKeys Key, const SInputAction& Action) { KeyMappings[Key] = Action; }
 
-void SInputMappingContext::RemoveMapping(EKeys Key) {
-    KeyMappings.erase(Key);
-}
+void SInputMappingContext::RemoveMapping(EKeys Key) { KeyMappings.erase(Key); }

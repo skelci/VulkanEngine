@@ -1,20 +1,12 @@
 #include "Math.hpp"
 
-float ToRadians(float Degrees) {
-    return Degrees * (PI / 180.0);
-}
+float ToRadians(float Degrees) { return Degrees * (PI / 180.0); }
 
-float ToDegrees(float Radians) {
-    return Radians * (180.0 / PI);
-}
+float ToDegrees(float Radians) { return Radians * (180.0 / PI); }
 
-float Lerp(float A, float B, float Alpha) {
-    return A + Alpha * (B - A);
-}
+float Lerp(float A, float B, float Alpha) { return A + Alpha * (B - A); }
 
-double Lerp(double A, double B, double Alpha) {
-    return A + Alpha * (B - A);
-}
+double Lerp(double A, double B, double Alpha) { return A + Alpha * (B - A); }
 
 int Clamp(int Value, int Min, int Max) {
     if (Value < Min) return Min;

@@ -6,11 +6,7 @@
 #include <string_view>
 
 
-enum class ELogLevel {
-    Info,
-    Warning,
-    Error
-};
+enum class ELogLevel { Info, Warning, Error };
 
 class CLog {
 public:

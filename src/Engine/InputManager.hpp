@@ -66,18 +66,9 @@ enum class EKeys : uint16_t {
     MouseWheelAxis
 };
 
-enum class EInputValueType : uint8_t {
-    Digital,
-    Axis1D,
-    Axis2D
-};
+enum class EInputValueType : uint8_t { Digital, Axis1D, Axis2D };
 
-enum class EInputEvent : uint8_t {
-    Pressed,
-    Triggered,
-    Released,
-    None
-};
+enum class EInputEvent : uint8_t { Pressed, Triggered, Released, None };
 
 using FDigitalAction = std::function<void()>;
 using FAxis1DAction = std::function<void(float)>;
@@ -101,31 +92,42 @@ struct SInputAction {
         auto tupleArgs = std::make_tuple(std::forward<Args>(args)...);
 
         if constexpr (Type == EInputValueType::Digital) {
-            static_assert(std::is_invocable_v<MemFn, Obj*, Args...>,
-                          "Digital callback must be callable as member(args...)");
+            static_assert(
+                std::is_invocable_v<MemFn, Obj*, Args...>, "Digital callback must be callable as member(args...)"
+            );
             action.Callback = FDigitalAction([object, fn, tupleArgs = std::move(tupleArgs)]() mutable {
-                std::apply([object, fn](auto&&... unpacked) {
-                    std::invoke(fn, object, std::forward<decltype(unpacked)>(unpacked)...);
-                },
-                           tupleArgs);
+                std::apply(
+                    [object, fn](auto&&... unpacked) {
+                        std::invoke(fn, object, std::forward<decltype(unpacked)>(unpacked)...);
+                    },
+                    tupleArgs
+                );
             });
         } else if constexpr (Type == EInputValueType::Axis1D) {
-            static_assert(std::is_invocable_v<MemFn, Obj*, float, Args...>,
-                          "Axis1D callback must be callable as member(float, args...)");
+            static_assert(
+                std::is_invocable_v<MemFn, Obj*, float, Args...>,
+                "Axis1D callback must be callable as member(float, args...)"
+            );
             action.Callback = FAxis1DAction([object, fn, tupleArgs = std::move(tupleArgs)](float axis) mutable {
-                std::apply([object, fn, axis](auto&&... unpacked) {
-                    std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
-                },
-                           tupleArgs);
+                std::apply(
+                    [object, fn, axis](auto&&... unpacked) {
+                        std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
+                    },
+                    tupleArgs
+                );
             });
         } else {
-            static_assert(std::is_invocable_v<MemFn, Obj*, SVector2, Args...>,
-                          "Axis2D callback must be callable as member(vec2, args...)");
+            static_assert(
+                std::is_invocable_v<MemFn, Obj*, SVector2, Args...>,
+                "Axis2D callback must be callable as member(vec2, args...)"
+            );
             action.Callback = FAxis2DAction([object, fn, tupleArgs = std::move(tupleArgs)](SVector2 axis) mutable {
-                std::apply([object, fn, axis](auto&&... unpacked) {
-                    std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
-                },
-                           tupleArgs);
+                std::apply(
+                    [object, fn, axis](auto&&... unpacked) {
+                        std::invoke(fn, object, axis, std::forward<decltype(unpacked)>(unpacked)...);
+                    },
+                    tupleArgs
+                );
             });
         }
 
@@ -133,8 +135,7 @@ struct SInputAction {
     }
 };
 
-#define MAKE_INPUT_ACTION(ValueType, ...) \
-    SInputAction::Create<ValueType>(__VA_ARGS__)
+#define MAKE_INPUT_ACTION(ValueType, ...) SInputAction::Create<ValueType>(__VA_ARGS__)
 
 
 struct SInputMappingContext {
