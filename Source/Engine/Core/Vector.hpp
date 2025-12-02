@@ -41,13 +41,13 @@ struct SVector2 {
     double LengthSquared() const;
     double Length() const;
 
-    SVector2 GetNormalized() const;
-    SVector2 GetSafeNormalized(double Tolerance = SMALL_NUMBER) const;
-    SVector2 GetAbs() const;
+    SVector2 Normalized() const;
+    SVector2 SafeNormalized(double Tolerance = SMALL_NUMBER) const;
+    SVector2 Abs() const;
 
     double Dot(const SVector2& Other) const;
     SVector2 Cross(const SVector2& Other) const;
-    SVector2 GetRotated(const float Angle) const;
+    SVector2 Rotated(const float Angle) const;
 
     std::string ToString() const;
 };
@@ -84,13 +84,13 @@ struct SVector {
     double LengthSquared() const;
     double Length() const;
 
-    SVector GetNormalized() const;
-    SVector GetSafeNormalized(double Tolerance = SMALL_NUMBER) const;
-    SVector GetAbs() const;
+    SVector Normalized() const;
+    SVector SafeNormalized(double Tolerance = SMALL_NUMBER) const;
+    SVector Abs() const;
 
     double Dot(const SVector& Other) const;
     SVector Cross(const SVector& Other) const;
-    SVector GetRotated(const SRotator& Rotator) const;
+    SVector Rotated(const SRotator& Rotator) const;
 
     glm::vec3 ToGLMVec3() const;
     SRotator ToRotator() const;

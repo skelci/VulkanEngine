@@ -75,12 +75,12 @@ double SVector2::LengthSquared() const { return X * X + Y * Y; }
 
 double SVector2::Length() const { return std::sqrt(LengthSquared()); }
 
-SVector2 SVector2::GetNormalized() const {
+SVector2 SVector2::Normalized() const {
     const double InvLen = 1 / Length();
     return SVector2(X * InvLen, Y * InvLen);
 }
 
-SVector2 SVector2::GetSafeNormalized(double Tolerance) const {
+SVector2 SVector2::SafeNormalized(double Tolerance) const {
     const double Len = Length();
     if (Len < Tolerance) {
         return SVector2();
@@ -89,7 +89,7 @@ SVector2 SVector2::GetSafeNormalized(double Tolerance) const {
     return SVector2(X * InvLen, Y * InvLen);
 }
 
-SVector2 SVector2::GetAbs() const { return SVector2(std::abs(X), std::abs(Y)); }
+SVector2 SVector2::Abs() const { return SVector2(std::abs(X), std::abs(Y)); }
 
 double SVector2::Dot(const SVector2& Other) const { return X * Other.X + Y * Other.Y; }
 
@@ -97,7 +97,7 @@ SVector2 SVector2::Cross(const SVector2& Other) const {
     return SVector2(X * Other.Y - Y * Other.X, Y * Other.X - X * Other.Y);
 }
 
-SVector2 SVector2::GetRotated(const float Angle) const {
+SVector2 SVector2::Rotated(const float Angle) const {
     const float Rad = ToRadians(Angle);
     const float CosA = std::cos(Rad);
     const float SinA = std::sin(Rad);
@@ -187,12 +187,12 @@ double SVector::LengthSquared() const { return X * X + Y * Y + Z * Z; }
 
 double SVector::Length() const { return std::sqrt(LengthSquared()); }
 
-SVector SVector::GetNormalized() const {
+SVector SVector::Normalized() const {
     const double InvLen = 1 / Length();
     return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
 
-SVector SVector::GetSafeNormalized(double Tolerance) const {
+SVector SVector::SafeNormalized(double Tolerance) const {
     const double Len = Length();
     if (Len < Tolerance) {
         return SVector();
@@ -201,7 +201,7 @@ SVector SVector::GetSafeNormalized(double Tolerance) const {
     return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
 
-SVector SVector::GetAbs() const { return SVector(std::abs(X), std::abs(Y), std::abs(Z)); }
+SVector SVector::Abs() const { return SVector(std::abs(X), std::abs(Y), std::abs(Z)); }
 
 double SVector::Dot(const SVector& Other) const { return X * Other.X + Y * Other.Y + Z * Other.Z; }
 
@@ -209,7 +209,7 @@ SVector SVector::Cross(const SVector& Other) const {
     return SVector(Y * Other.Z - Z * Other.Y, Z * Other.X - X * Other.Z, X * Other.Y - Y * Other.X);
 }
 
-SVector SVector::GetRotated(const SRotator& Rotator) const {
+SVector SVector::Rotated(const SRotator& Rotator) const {
     // Convert degrees to radians
     const SRotator RotatorRad = Rotator.AsRadians();
 

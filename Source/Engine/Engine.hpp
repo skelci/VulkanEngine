@@ -2,6 +2,7 @@
 
 #include "Renderer.hpp"
 #include "Vector.hpp"
+#include "World.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -9,6 +10,7 @@
 #include <memory>
 
 class ACamera;
+class AStaticMeshActor;
 enum class EKeys : uint16_t;
 
 
@@ -27,17 +29,22 @@ private:
     GLFWwindow* Window;
     void CreateWindow();
 
-public:
-    GLFWwindow* GetWindow() const { return Window; }
-    void inline SetActiveCamera(std::shared_ptr<ACamera> Camera) { Renderer->SetActiveCamera(Camera); }
-
-private:
     CRenderer* Renderer;
 
-public:
-    std::shared_ptr<ACamera> Camera;
+    std::unique_ptr<CWorld> World;
 
+public:
+    GLFWwindow* GetWindow() const { return Window; }
+    void inline SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
+
+    CRenderer* GetRenderer() const { return Renderer; }
+
+    CWorld* GetWorld() const { return World.get(); }
+
+
+    // Game stuff
 private:
+    ACamera* Camera;
     void OnEscapePressed();
 
     void Move(EKeys Key);
@@ -46,4 +53,9 @@ private:
     void LookAround(SVector2 Delta);
     float FlySpeed = 1;
     void ScaleFlySpeed(float Amount);
+
+    void InitGameStuff();
+
+    AStaticMeshActor* VikingRoomActor;
+    void TickGameStuff(float DeltaTime);
 };

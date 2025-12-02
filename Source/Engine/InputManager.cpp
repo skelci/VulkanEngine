@@ -74,9 +74,9 @@ CInputManager::CInputManager() {
 void CInputManager::Tick(float DeltaTime) {
     std::sort(
         MappingContexts.begin(), MappingContexts.end(),
-        [](const std::shared_ptr<SInputMappingContext>& a, const std::shared_ptr<SInputMappingContext>& b) {
-            return b->Priority >
-                   a->Priority; // Lower priority because it could be overridden by higher priority contexts
+        [](const std::unique_ptr<SInputMappingContext>& a, const std::unique_ptr<SInputMappingContext>& b) {
+            // Lower priority because it could be overridden by higher priority contexts
+            return b->Priority > a->Priority;
         }
     );
 
@@ -97,12 +97,18 @@ void CInputManager::Tick(float DeltaTime) {
     ScrollDelta = 0;
 }
 
-void CInputManager::AddMappingContext(std::shared_ptr<SInputMappingContext> Context) {
-    MappingContexts.push_back(Context);
+void CInputManager::AddMappingContext(SInputMappingContext* Context) {
+    MappingContexts.push_back(std::unique_ptr<SInputMappingContext>(Context));
 }
 
-void CInputManager::RemoveMappingContext(std::shared_ptr<SInputMappingContext> Context) {
-    MappingContexts.erase(std::remove(MappingContexts.begin(), MappingContexts.end(), Context), MappingContexts.end());
+void CInputManager::RemoveMappingContext(SInputMappingContext* Context) {
+    MappingContexts.erase(
+        std::remove_if(
+            MappingContexts.begin(), MappingContexts.end(),
+            [&Context](const std::unique_ptr<SInputMappingContext>& ptr) { return ptr && ptr.get() == Context; }
+        ),
+        MappingContexts.end()
+    );
 }
 
 void CInputManager::ProcessDigitalInput(EKeys Key, SInputAction Action) {
@@ -121,22 +127,8 @@ void CInputManager::ProcessDigitalInput(EKeys Key, SInputAction Action) {
         state = EInputEvent::Released;
     }
 
-    switch (Action.InputEvent) {
-    case EInputEvent::Pressed:
-        if (state == EInputEvent::Pressed) {
-            callback();
-        }
-        break;
-    case EInputEvent::Triggered:
-        if (state == EInputEvent::Triggered) {
-            callback();
-        }
-        break;
-    case EInputEvent::Released:
-        if (state == EInputEvent::Released) {
-            callback();
-        }
-        break;
+    if (Action.InputEvent == state) {
+        callback();
     }
 }
 

@@ -18,3 +18,4 @@ UseTab: Never
 ContinuationIndentWidth: 4
 AllowAllArgumentsOnNextLine: false
 PenaltyReturnTypeOnItsOwnLine: 1000
+AlwaysBreakTemplateDeclarations: Yes

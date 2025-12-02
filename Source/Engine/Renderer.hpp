@@ -30,17 +30,7 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct SVertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-
-    static VkVertexInputBindingDescription GetBindingDescription();
-    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
-};
-
 struct SUniformBufferObject {
-    alignas(16) glm::mat4 model;
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 };
@@ -53,12 +43,18 @@ public:
 
     void Tick(float DeltaTime);
 
-    void inline SetActiveCamera(std::shared_ptr<ACamera> Camera) { ActiveCamera = Camera; }
+    void inline SetActiveCamera(ACamera* Camera) { ActiveCamera = Camera; }
+
+    template <typename T>
+    void CreateBuffer(
+        VkBuffer& buffer, VkDeviceMemory& bufferMemory, const std::vector<T>& data, VkBufferUsageFlags usage
+    );
+
+    VkDevice GetDevice() const { return device; }
+
+    void WaitForIdle() { vkDeviceWaitIdle(device); }
 
 private:
-    void BeginPlay();
-    void EndPlay();
-
     static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
     void InitVulkan();
     void CreateInstance();
@@ -77,9 +73,6 @@ private:
     void CreateTextureImage();
     void CreateTextureImageView();
     void CreateTextureSampler();
-    void LoadModel();
-    void CreateVertexBuffer();
-    void CreateIndexBuffer();
     void CreateUniformBuffers();
     void CreateDescriptorSets();
     void CreateDescriptorPool();
@@ -152,7 +145,7 @@ private:
         VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator
     );
 
-    std::shared_ptr<ACamera> ActiveCamera;
+    ACamera* ActiveCamera;
 
     GLFWwindow* window;
     VkInstance instance;
@@ -189,14 +182,6 @@ private:
 
     VkDebugUtilsMessengerEXT debugMessenger;
 
-    std::vector<SVertex> vertices;
-    std::vector<uint32_t> indices;
-
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
-    VkBuffer indexBuffer;
-    VkDeviceMemory indexBufferMemory;
-
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
@@ -226,8 +211,7 @@ private:
 
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
-    const std::string MODEL_PATH = "res/viking_room/viking_room.obj";
-    const std::string TEXTURE_PATH = "res/viking_room/viking_room.png";
+    const std::string TEXTURE_PATH = "Content/viking_room/viking_room.png";
 
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",
@@ -249,3 +233,34 @@ private:
     static std::vector<char> ReadFile(const std::string& filename);
     VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
+
+
+template <typename T>
+inline void CRenderer::CreateBuffer(
+    VkBuffer& buffer, VkDeviceMemory& bufferMemory, const std::vector<T>& data, VkBufferUsageFlags usage
+) {
+    assert(!data.empty() && "Data array is empty, cannot create buffer!");
+
+    VkDeviceSize bufferSize = sizeof(T) * data.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    CreateBuffer(
+        bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory
+    );
+
+    void* dataPtr;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &dataPtr);
+    memcpy(dataPtr, data.data(), (size_t)bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    CreateBuffer(
+        bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory
+    );
+
+    CopyBuffer(stagingBuffer, buffer, bufferSize);
+
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
+}

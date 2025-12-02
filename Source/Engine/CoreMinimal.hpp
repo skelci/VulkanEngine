@@ -5,6 +5,7 @@
 #include "Math.hpp"
 #include "Rotator.hpp"
 #include "Vector.hpp"
+#include "World.hpp"
 
 #include <memory>
 #include <string>

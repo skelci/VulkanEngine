@@ -2,69 +2,33 @@
 
 #include "Camera.hpp"
 #include "EngineStatics.hpp"
+#include "StaticMesh.hpp"
+#include "StaticMeshActor.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #define STB_IMAGE_IMPLEMENTATION
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <assimp/scene.h>
 #include <stb/stb_image.h>
 
-#include <chrono>
-#include <cstring>
 #include <fstream>
 #include <map>
 #include <set>
 #include <stdexcept>
 
 
-VkVertexInputBindingDescription SVertex::GetBindingDescription() {
-    VkVertexInputBindingDescription bindingDescription{};
-    bindingDescription.binding = 0;
-    bindingDescription.stride = sizeof(SVertex);
-    bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    return bindingDescription;
-}
-
-std::array<VkVertexInputAttributeDescription, 3> SVertex::GetAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-    attributeDescriptions[0].binding = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset = offsetof(SVertex, pos);
-
-    attributeDescriptions[1].binding = 0;
-    attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[1].offset = offsetof(SVertex, color);
-
-    attributeDescriptions[2].binding = 0;
-    attributeDescriptions[2].location = 2;
-    attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[2].offset = offsetof(SVertex, texCoord);
-
-    return attributeDescriptions;
-}
-
-CRenderer::CRenderer() { BeginPlay(); }
-
-CRenderer::~CRenderer() { EndPlay(); }
-
-void CRenderer::Tick(float DeltaTime) { DrawFrame(); }
-
-void CRenderer::BeginPlay() {
+CRenderer::CRenderer() {
     window = GEngine->GetWindow();
 
     glfwSetFramebufferSizeCallback(GEngine->GetWindow(), FramebufferResizeCallback);
     InitVulkan();
 }
 
-void CRenderer::EndPlay() {
-    vkDeviceWaitIdle(device);
+CRenderer::~CRenderer() {
+    WaitForIdle();
     Cleanup();
 }
+
+void CRenderer::Tick(float DeltaTime) { DrawFrame(); }
 
 void CRenderer::FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto engine = reinterpret_cast<CRenderer*>(glfwGetWindowUserPointer(window));
@@ -89,9 +53,6 @@ void CRenderer::InitVulkan() {
     CreateTextureImage();
     CreateTextureImageView();
     CreateTextureSampler();
-    LoadModel();
-    CreateVertexBuffer();
-    CreateIndexBuffer();
     CreateUniformBuffers();
     CreateDescriptorPool();
     CreateDescriptorSets();
@@ -193,10 +154,8 @@ void CRenderer::CreateSwapChain() {
 
     createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
-
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
     if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
@@ -231,9 +190,7 @@ void CRenderer::RecreateSwapChain() {
     }
 
     vkDeviceWaitIdle(device);
-
     CleanupSwapChain();
-
     CreateSwapChain();
     CreateImageViews();
     CreateColorResources();
@@ -468,12 +425,17 @@ void CRenderer::CreateGraphicsPipeline() {
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
+    VkPushConstantRange pushConstantRange{};
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(glm::mat4);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-    pipelineLayoutInfo.pushConstantRangeCount = 0;    // Optional
-    pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
     if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("failed to create pipeline layout!");
@@ -653,90 +615,6 @@ void CRenderer::CreateTextureSampler() {
     }
 }
 
-void CRenderer::LoadModel() {
-    Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(
-        MODEL_PATH, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices
-    );
-
-    if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-        throw std::runtime_error(std::string("Assimp: ") + importer.GetErrorString());
-    }
-
-    const aiMesh* mesh = scene->mMeshes[0];
-    vertices.clear();
-    indices.clear();
-    vertices.reserve(mesh->mNumVertices);
-
-    for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
-        SVertex v{};
-        v.pos = {mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z};
-        v.color = mesh->HasVertexColors(0)
-                      ? glm::vec3(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b)
-                      : glm::vec3(1.0f);
-        v.texCoord = mesh->HasTextureCoords(0) ? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y)
-                                               : glm::vec2(0.0f);
-        vertices.push_back(v);
-    }
-
-    for (uint32_t f = 0; f < mesh->mNumFaces; ++f) {
-        const aiFace& face = mesh->mFaces[f];
-        indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
-    }
-}
-
-void CRenderer::CreateVertexBuffer() {
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(
-        bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory
-    );
-
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    CreateBuffer(
-        bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory
-    );
-
-    CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-}
-
-void CRenderer::CreateIndexBuffer() {
-    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    CreateBuffer(
-        bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory
-    );
-
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), (size_t)bufferSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-
-    CreateBuffer(
-        bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory
-    );
-
-    CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
-
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-}
-
 void CRenderer::CreateUniformBuffers() {
     VkDeviceSize bufferSize = sizeof(SUniformBufferObject);
 
@@ -855,7 +733,6 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
     renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapChainExtent;
-
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
 
@@ -877,18 +754,35 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
     scissor.extent = swapChainExtent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    VkBuffer vertexBuffers[] = {vertexBuffer};
-    VkDeviceSize offsets[] = {0};
-
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[frameIndex], 0, nullptr
     );
 
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    for (const auto& actor : GEngine->GetWorld()->GetActors()) {
+        auto meshActor = dynamic_cast<AStaticMeshActor*>(actor.get());
+        if (!meshActor || !meshActor->StaticMesh) continue;
+
+        CStaticMesh* mesh = meshActor->StaticMesh.get();
+
+        VkBuffer vertexBuffers[] = {mesh->GetVertexBuffer()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+        const STransform& transform = meshActor->Transform;
+        glm::mat4 modelMatrix = glm::mat4_cast(glm::quat(transform.Rotation.AsRadians().ToEuler().ToGLMVec3()));
+        const SVector& scale = transform.Scale;
+        modelMatrix[0] *= scale.X;
+        modelMatrix[1] *= scale.Y;
+        modelMatrix[2] *= scale.Z;
+        modelMatrix[3] = glm::vec4(transform.Position.ToGLMVec3(), 1.0f);
+
+        vkCmdPushConstants(
+            commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &modelMatrix
+        );
+
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh->GetIndices().size()), 1, 0, 0, 0);
+    }
 
     vkCmdEndRenderPass(commandBuffer);
 
@@ -898,19 +792,13 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
 }
 
 void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
-    static auto startTime = std::chrono::high_resolution_clock::now();
-
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
     SUniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
     const STransform camTransform = ActiveCamera->Transform;
 
     // Flip Y for Left-Handed coordinate system (Y=Right)
     SVector eye = camTransform.Position;
-    SVector center = camTransform.Position + camTransform.Rotation.GetForwardVector();
+    SVector center = camTransform.Position + camTransform.Rotation.ForwardVector();
     eye.Y *= -1;
     center.Y *= -1;
 
@@ -1451,12 +1339,6 @@ void CRenderer::Cleanup() {
 
     vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-    vkDestroyBuffer(device, indexBuffer, nullptr);
-    vkFreeMemory(device, indexBufferMemory, nullptr);
-
-    vkDestroyBuffer(device, vertexBuffer, nullptr);
-    vkFreeMemory(device, vertexBufferMemory, nullptr);
-
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
@@ -1477,9 +1359,6 @@ void CRenderer::Cleanup() {
 
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
-
-    glfwDestroyWindow(window);
-    glfwTerminate();
 }
 
 void CRenderer::CleanupSwapChain() {

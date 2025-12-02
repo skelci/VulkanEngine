@@ -158,11 +158,11 @@ public:
 
     void Tick(float DeltaTime);
 
-    void AddMappingContext(std::shared_ptr<SInputMappingContext> Context);
-    void RemoveMappingContext(std::shared_ptr<SInputMappingContext> Context);
+    void AddMappingContext(SInputMappingContext* Context);
+    void RemoveMappingContext(SInputMappingContext* Context);
 
 private:
-    std::vector<std::shared_ptr<SInputMappingContext>> MappingContexts;
+    std::vector<std::unique_ptr<SInputMappingContext>> MappingContexts;
 
     void ProcessDigitalInput(EKeys Key, SInputAction Action);
     void ProcessAxis1DInput(EKeys Key, SInputAction Action);

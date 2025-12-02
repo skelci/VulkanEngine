@@ -19,8 +19,8 @@ struct SRotator {
 
     SRotator AsRadians() const;
 
-    SVector ToVector() const;
-    SVector GetForwardVector() const;
+    SVector ForwardVector() const;
 
+    SVector ToEuler() const;
     std::string ToString() const;
 };

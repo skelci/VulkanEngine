@@ -17,16 +17,18 @@ SRotator& SRotator::operator+=(const SRotator& Other) {
 
 SRotator SRotator::AsRadians() const { return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll)); }
 
-SVector SRotator::ToVector() const { return SVector(Pitch, Yaw, Roll); }
-
-SVector SRotator::GetForwardVector() const {
-    float CP = std::cos(ToRadians(Pitch));
-    float SP = std::sin(ToRadians(Pitch));
-    float CY = std::cos(ToRadians(Yaw));
-    float SY = std::sin(ToRadians(Yaw));
+SVector SRotator::ForwardVector() const {
+    const float P = ToRadians(Pitch);
+    const float Y = ToRadians(Yaw);
+    const float CP = std::cos(P);
+    const float SP = std::sin(P);
+    const float CY = std::cos(Y);
+    const float SY = std::sin(Y);
 
     return SVector(CP * CY, CP * SY, SP);
 }
+
+SVector SRotator::ToEuler() const { return SVector(Roll, Pitch, Yaw); }
 
 std::string SRotator::ToString() const {
     return "SRotator(" + std::to_string(Pitch) + ", " + std::to_string(Yaw) + ", " + std::to_string(Roll) + ")";
