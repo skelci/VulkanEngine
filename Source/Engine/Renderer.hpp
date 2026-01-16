@@ -45,12 +45,34 @@ public:
 
     void inline SetActiveCamera(ACamera* Camera) { ActiveCamera = Camera; }
 
+    // Handles buffer creation with staging buffer internally
     template <typename T>
     void CreateBuffer(
         VkBuffer& buffer, VkDeviceMemory& bufferMemory, const std::vector<T>& data, VkBufferUsageFlags usage
     );
 
+    void CreateBuffer(
+        VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+        VkDeviceMemory& bufferMemory
+    );
+
+    void CreateImage(
+        uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
+        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+        VkDeviceMemory& imageMemory
+    );
+    void TransitionImageLayout(
+        VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels
+    );
+    void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+    void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+
     VkDevice GetDevice() const { return device; }
+
+    VkDescriptorSetLayout GetTextureSetLayout() const { return textureSetLayout; }
+    VkSampler GetTextureSampler() const { return textureSampler; }
+    VkDescriptorPool GetDescriptorPool() const { return descriptorPool; }
 
     void WaitForIdle() { vkDeviceWaitIdle(device); }
 
@@ -70,8 +92,6 @@ private:
     void CreateCommandPool();
     void CreateColorResources();
     void CreateDepthResources();
-    void CreateTextureImage();
-    void CreateTextureImageView();
     void CreateTextureSampler();
     void CreateUniformBuffers();
     void CreateDescriptorSets();
@@ -82,24 +102,7 @@ private:
     VkCommandBuffer BeginSingleTimeCommands();
     void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-    void CreateBuffer(
-        VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-        VkDeviceMemory& bufferMemory
-    );
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-
-    void CreateImage(
-        uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
-        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-        VkDeviceMemory& imageMemory
-    );
-    void TransitionImageLayout(
-        VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels
-    );
-    void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-
-    void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
     VkFormat FindSupportedFormat(
         const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features
@@ -165,7 +168,13 @@ private:
     std::vector<VkFramebuffer> swapChainFramebuffers;
 
     VkRenderPass renderPass;
-    VkDescriptorSetLayout descriptorSetLayout;
+
+    VkDescriptorSetLayout globalSetLayout;
+    VkDescriptorSetLayout textureSetLayout;
+
+    friend class CEngine;
+    std::shared_ptr<class CTexture> DefaultTexture;
+
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
@@ -189,10 +198,6 @@ private:
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    uint32_t mipLevels;
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
-    VkImageView textureImageView;
     VkSampler textureSampler;
 
     VkImage depthImage;
@@ -210,8 +215,6 @@ private:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
-
-    const std::string TEXTURE_PATH = "Content/viking_room/viking_room.png";
 
     const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation",

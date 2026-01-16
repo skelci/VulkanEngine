@@ -30,6 +30,8 @@ void CEngine::Initialize() {
     GAssetManager = new CAssetManager();
     GInputManager = new CInputManager();
 
+    Renderer->DefaultTexture = GAssetManager->GetAsset<CTexture>("Engine/Textures/DefaultTexture.png");
+
     InitGameStuff();
 
     previousFrameTime = std::chrono::steady_clock::now();
@@ -140,20 +142,31 @@ void CEngine::InitGameStuff() {
     Camera = World->SpawnActor<ACamera>();
     SetActiveCamera(Camera);
 
+    auto vikingRoomTexture = GetAsset<CTexture>("viking_room/viking_room.png");
+
     VikingRoomActor = World->SpawnActor<AStaticMeshActor>();
     VikingRoomActor->StaticMesh = GetAsset<CStaticMesh>("viking_room/viking_room.obj");
+    VikingRoomActor->Texture = vikingRoomTexture;
 
-    for (int i = 0; i < 10'000; i++) {
+    for (int i = 0; i < 100; i++) {
         AStaticMeshActor* actor = World->SpawnActor<AStaticMeshActor>();
         actor->StaticMesh = GetAsset<CStaticMesh>("viking_room/viking_room.obj");
-        actor->Transform.Position = SVector((i % 100) * 3.0, (i / 100) * 3.0, 0);
+        actor->Texture = vikingRoomTexture;
+        actor->Transform.Position = SVector((i % 10) * 3.0, (i / 10) * 3.0, 0);
     }
+
+    auto character = World->SpawnActor<AStaticMeshActor>();
+    character->StaticMesh = GetAsset<CStaticMesh>("Character/character.obj");
+    character->Texture = GetAsset<CTexture>("textures/texture.jpeg");
+    character->Transform.Scale = SVector(5.0);
+    character->Transform.Position = SVector(-5.0);
 }
 
 void CEngine::TickGameStuff(float DeltaTime) {
     Camera->Transform.Position +=
         (SVector(InputVector.X, InputVector.Y, 0).Rotated(Camera->Transform.Rotation) + SVector(0, 0, InputVector.Z)) *
         FlySpeed * DeltaTime;
+
 
     InputVector = SVector(0);
 

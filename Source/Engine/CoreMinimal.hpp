@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DataTypes.hpp"
 #include "Delegate.hpp"
 #include "EngineStatics.hpp"
 #include "Math.hpp"
