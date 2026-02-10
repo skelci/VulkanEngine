@@ -1,9 +1,9 @@
 #include "Renderer.hpp"
 
-#include "Camera.hpp"
+#include "Actors/Camera.hpp"
+#include "Actors/StaticMeshActor.hpp"
+#include "Assets/StaticMesh.hpp"
 #include "EngineStatics.hpp"
-#include "StaticMesh.hpp"
-#include "StaticMeshActor.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>

@@ -13,7 +13,7 @@ public:
     void Initialize();
     void Log(std::string_view category, ELogLevel level, std::string_view message);
 
-    std::string LogPath = "Saves/Logs";
+    std::string LogPath = "Saved/Logs";
     TDelegate<ELogLevel /*LogLevel*/, std::string_view /*Message*/> OnLogMessage;
 
 private:

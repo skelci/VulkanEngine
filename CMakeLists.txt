@@ -10,20 +10,20 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 
-set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/Source)
-    
+set(ENGINE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/Engine/Source)
+set(GAME_SOURCE_DIR ${CMAKE_SOURCE_DIR}/Game/Source)
+
 file(GLOB_RECURSE SOURCES
-    ${SOURCE_DIR}/*.cpp
+    ${ENGINE_SOURCE_DIR}/*.cpp
+    ${GAME_SOURCE_DIR}/*.cpp
 )
 
 add_executable(VulkanEngine ${SOURCES})
 
 target_include_directories(VulkanEngine PRIVATE "C:/msys64/ucrt64/include")
-target_include_directories(VulkanEngine PRIVATE ${SOURCE_DIR})
-target_include_directories(VulkanEngine PRIVATE ${SOURCE_DIR}/Engine)
-target_include_directories(VulkanEngine PRIVATE ${SOURCE_DIR}/Engine/Actors)
-target_include_directories(VulkanEngine PRIVATE ${SOURCE_DIR}/Engine/Assets)
-target_include_directories(VulkanEngine PRIVATE ${SOURCE_DIR}/Engine/Core)
+target_include_directories(VulkanEngine PRIVATE ${ENGINE_SOURCE_DIR})
+target_include_directories(VulkanEngine PRIVATE ${ENGINE_SOURCE_DIR}/Core)
+target_include_directories(VulkanEngine PRIVATE ${GAME_SOURCE_DIR})
 
 target_link_libraries(VulkanEngine PRIVATE
     Vulkan::Vulkan

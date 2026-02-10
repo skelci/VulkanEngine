@@ -34,28 +34,11 @@ private:
     std::unique_ptr<CWorld> World;
 
 public:
+    void inline Stop() { IsRunning = false; }
+
     GLFWwindow* GetWindow() const { return Window; }
+    CRenderer* GetRenderer() const { return Renderer; }
     void inline SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
 
-    CRenderer* GetRenderer() const { return Renderer; }
-
     CWorld* GetWorld() const { return World.get(); }
-
-
-    // Game stuff
-private:
-    ACamera* Camera;
-    void OnEscapePressed();
-
-    void Move(EKeys Key);
-    SVector InputVector = SVector(0);
-
-    void LookAround(SVector2 Delta);
-    float FlySpeed = 1;
-    void ScaleFlySpeed(float Amount);
-
-    void InitGameStuff();
-
-    AStaticMeshActor* VikingRoomActor;
-    void TickGameStuff(float DeltaTime);
 };

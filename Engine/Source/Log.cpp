@@ -28,7 +28,7 @@ void CLog::Log(std::string_view category, ELogLevel level, std::string_view mess
     const std::string_view& levelName = LogLevelNames[static_cast<std::size_t>(level)];
     const std::string_view& levelColor = LogLevelAnsiColors[static_cast<std::size_t>(level)];
     std::string logMessage;
-    logMessage.reserve(1 + levelName.size() + 2 + category.size() + 1 + message.size());
+    logMessage.reserve(1 + levelName.size() + 2 + category.size() + 2 + message.size() + 1);
     logMessage.append("[");
     logMessage.append(levelName);
     logMessage.append("][");

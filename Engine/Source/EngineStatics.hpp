@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AssetManager.hpp"
+#include "Assets/AssetManager.hpp"
 #include "Engine.hpp"
 #include "InputManager.hpp"
 #include "Log.hpp"

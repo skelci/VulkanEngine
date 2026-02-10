@@ -59,19 +59,17 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "${workspaceFolder}/build/VulkanEngine.exe",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\scripts\\run.ps1"
+            ],
             "group": {
                 "kind": "test",
                 "isDefault": true
-            },
-            "dependsOn": "build:debug",
-            "options": {
-                "cwd": "${workspaceFolder}",
-                "env": {
-                    "PATH": "C:/msys64/ucrt64/bin;${env:PATH}",
-                    "VK_LAYER_PATH": "C:/msys64/ucrt64/bin",
-                    "VK_INSTANCE_LAYERS": "VK_LAYER_KHRONOS_validation"
-                }
             }
         }
     ]

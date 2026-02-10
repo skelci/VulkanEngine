@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Object.hpp"
 #include "Rotator.hpp"
 #include "Vector.hpp"
 
@@ -11,7 +12,8 @@ struct STransform {
 };
 
 
-class AActor {
+class AActor : public CObject {
+    CLASS_BODY(AActor, CObject)
 public:
     virtual ~AActor();
     STransform Transform;

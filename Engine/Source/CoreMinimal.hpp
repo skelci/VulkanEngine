@@ -4,9 +4,9 @@
 #include "Delegate.hpp"
 #include "EngineStatics.hpp"
 #include "Math.hpp"
+#include "Object.hpp"
 #include "Rotator.hpp"
 #include "Vector.hpp"
-#include "World.hpp"
 
 #include <memory>
 #include <string>

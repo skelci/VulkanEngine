@@ -12,7 +12,7 @@
             "environment": [
                 {
                     "name": "VK_LAYER_PATH",
-                    "value": "C:/msys64/ucrt64/share/vulkan/explicit_layer.d;C:/msys64/ucrt64/share/vulkan/implicit_layer.d"
+                    "value": "C:/msys64/ucrt64/bin"
                 },
                 {
                     "name": "PATH",

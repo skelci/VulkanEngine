@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Actor.hpp"
-#include "StaticMesh.hpp"
-#include "Texture.hpp"
+#include "Assets/StaticMesh.hpp"
+#include "Assets/Texture.hpp"
 
 #include <memory>
 
