@@ -2,8 +2,6 @@
 
 #include <string>
 
-class CAssetManager;
-
 
 class CAssetBase {
     friend class CAssetManager;

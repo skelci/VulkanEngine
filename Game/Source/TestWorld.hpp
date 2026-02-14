@@ -4,7 +4,7 @@
 #include "World.hpp"
 
 class ACamera;
-class AStaticMeshActor;
+class AVikingRoom;
 
 
 class CTestWorld : public CWorld {
@@ -27,5 +27,5 @@ private:
     void LookAround(SVector2 Delta);
     void ScaleFlySpeed(float Amount);
 
-    AStaticMeshActor* VikingRoomActor;
+    AVikingRoom* VikingRoomActor;
 };

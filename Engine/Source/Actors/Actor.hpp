@@ -14,6 +14,7 @@ struct STransform {
 
 class AActor : public CObject {
     CLASS_BODY(AActor, CObject)
+
 public:
     virtual ~AActor();
     STransform Transform;

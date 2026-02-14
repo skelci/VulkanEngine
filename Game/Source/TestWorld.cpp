@@ -1,7 +1,8 @@
 #include "TestWorld.hpp"
 
 #include "Actors/Camera.hpp"
-#include "Actors/StaticMeshActor.hpp"
+#include "Assets/Model.hpp"
+#include "VikingRoom.hpp"
 
 
 void CTestWorld::BeginPlay() {
@@ -38,25 +39,18 @@ void CTestWorld::BeginPlay() {
     );
     GInputManager->AddMappingContext(GameMC);
 
-    Camera = GEngine->GetWorld()->SpawnActor<ACamera>();
+    Camera = SpawnActor<ACamera>();
     GEngine->SetActiveCamera(Camera);
 
-    auto vikingRoomTexture = GetAsset<CTexture>("Game/viking_room/viking_room.png");
-
-    VikingRoomActor = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
-    VikingRoomActor->StaticMesh = GetAsset<CStaticMesh>("Game/viking_room/viking_room.obj");
-    VikingRoomActor->Texture = vikingRoomTexture;
+    VikingRoomActor = SpawnActor<AVikingRoom>();
 
     for (int i = 0; i < 100; i++) {
-        AStaticMeshActor* actor = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
-        actor->StaticMesh = GetAsset<CStaticMesh>("Game/viking_room/viking_room.obj");
-        actor->Texture = vikingRoomTexture;
+        AVikingRoom* actor = SpawnActor<AVikingRoom>();
         actor->Transform.Position = SVector((i % 10) * 3.0, (i / 10) * 3.0, 0);
     }
 
-    auto character = GEngine->GetWorld()->SpawnActor<AStaticMeshActor>();
-    character->StaticMesh = GetAsset<CStaticMesh>("Game/Character/character.obj");
-    character->Texture = GetAsset<CTexture>("Game/textures/texture.jpeg");
+    auto character = SpawnActor<AMeshActor>();
+    character->Model = GetAsset<CModel>("Game/Character/character.obj");
     character->Transform.Scale = SVector(5.0);
     character->Transform.Position = SVector(-5.0);
 }
@@ -71,8 +65,6 @@ void CTestWorld::Tick(float DeltaTime) {
     VikingRoomActor->Transform.Rotation.Yaw += 10.0f * DeltaTime;
     VikingRoomActor->Transform.Position.Z += -0.1 * DeltaTime;
     VikingRoomActor->Transform.Scale += 0.1 * DeltaTime;
-
-    Log("Game", ELogLevel::Info, "FPS: " + std::to_string(1.0f / DeltaTime));
 }
 
 void CTestWorld::OnEscapePressed() { GEngine->Stop(); }

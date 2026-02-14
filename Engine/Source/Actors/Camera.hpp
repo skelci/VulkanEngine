@@ -5,6 +5,8 @@
 #include "Actor.hpp"
 
 class ACamera : public AActor {
+    CLASS_BODY(ACamera, AActor)
+
 public:
     float FOV = 90.0f;
     float NearClip = 0.1f;

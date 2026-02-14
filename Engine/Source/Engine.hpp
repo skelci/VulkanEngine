@@ -10,7 +10,6 @@
 #include <memory>
 
 class ACamera;
-class AStaticMeshActor;
 enum class EKeys : uint16_t;
 
 

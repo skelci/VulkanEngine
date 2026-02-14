@@ -1,8 +1,9 @@
 #include "Renderer.hpp"
 
 #include "Actors/Camera.hpp"
-#include "Actors/StaticMeshActor.hpp"
-#include "Assets/StaticMesh.hpp"
+#include "Actors/MeshActor.hpp"
+#include "Assets/Model.hpp"
+#include "Assets/Texture.hpp"
 #include "EngineStatics.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -708,39 +709,39 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
     );
 
     for (const auto& actor : GEngine->GetWorld()->GetActors()) {
-        auto MeshActor = dynamic_cast<AStaticMeshActor*>(actor.get());
-        if (!MeshActor || !MeshActor->StaticMesh) continue;
+        auto MeshActor = dynamic_cast<AMeshActor*>(actor.get());
+        if (!MeshActor || !MeshActor->Model) continue;
 
-        CStaticMesh* Mesh = MeshActor->StaticMesh.get();
+        for (const auto& Mesh : MeshActor->Model->Meshes) {
+            VkBuffer vertexBuffers[] = {Mesh.GetVertexBuffer()};
+            VkDeviceSize offsets[] = {0};
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+            vkCmdBindIndexBuffer(commandBuffer, Mesh.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-        VkBuffer vertexBuffers[] = {Mesh->GetVertexBuffer()};
-        VkDeviceSize offsets[] = {0};
-        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffer, Mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+            VkDescriptorSet texSet;
+            if (Mesh.Texture) {
+                texSet = Mesh.Texture->GetDescriptorSet();
+            } else {
+                texSet = DefaultTexture->GetDescriptorSet();
+            }
+            vkCmdBindDescriptorSets(
+                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &texSet, 0, nullptr
+            );
 
-        VkDescriptorSet texSet;
-        if (MeshActor->Texture) {
-            texSet = MeshActor->Texture->GetDescriptorSet();
-        } else {
-            texSet = DefaultTexture->GetDescriptorSet();
+            const STransform& transform = MeshActor->Transform;
+            glm::mat4 modelMatrix = glm::mat4_cast(glm::quat(transform.Rotation.AsRadians().ToEuler().ToGLMVec3()));
+            const SVector& scale = transform.Scale;
+            modelMatrix[0] *= scale.X;
+            modelMatrix[1] *= scale.Y;
+            modelMatrix[2] *= scale.Z;
+            modelMatrix[3] = glm::vec4(transform.Position.ToGLMVec3(), 1.0f);
+
+            vkCmdPushConstants(
+                commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &modelMatrix
+            );
+
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Mesh.GetIndices().size()), 1, 0, 0, 0);
         }
-        vkCmdBindDescriptorSets(
-            commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &texSet, 0, nullptr
-        );
-
-        const STransform& transform = MeshActor->Transform;
-        glm::mat4 modelMatrix = glm::mat4_cast(glm::quat(transform.Rotation.AsRadians().ToEuler().ToGLMVec3()));
-        const SVector& scale = transform.Scale;
-        modelMatrix[0] *= scale.X;
-        modelMatrix[1] *= scale.Y;
-        modelMatrix[2] *= scale.Z;
-        modelMatrix[3] = glm::vec4(transform.Position.ToGLMVec3(), 1.0f);
-
-        vkCmdPushConstants(
-            commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &modelMatrix
-        );
-
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Mesh->GetIndices().size()), 1, 0, 0, 0);
     }
 
     vkCmdEndRenderPass(commandBuffer);

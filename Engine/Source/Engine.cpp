@@ -1,7 +1,6 @@
 #include "Engine.hpp"
 
-#include "Actors/Camera.hpp"
-#include "Actors/StaticMeshActor.hpp"
+#include "Assets/Texture.hpp"
 #include "DefaultEngineConfig.hpp"
 #include "EngineStatics.hpp"
 
@@ -35,7 +34,7 @@ void CEngine::Initialize() {
 
     Renderer->DefaultTexture = GAssetManager->GetAsset<CTexture>("Engine/Textures/DefaultTexture.png");
 
-    Log("Engine", ELogLevel::Warning, "World Class: " + GEngineConfig.WorldClass->Name);
+    Log("Engine", ELogLevel::Info, "Creating World: " + GEngineConfig.WorldClass->Name);
     World = std::unique_ptr<CWorld>(GEngineConfig.WorldClass.CreateObject());
     World->BeginPlay();
 
