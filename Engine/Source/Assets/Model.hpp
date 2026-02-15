@@ -9,7 +9,7 @@ class CModel : public CAssetBase {
 public:
     std::vector<CMesh> Meshes;
 
-    void SetTexture(std::shared_ptr<CTexture> InTexture);
+    void SetMaterial(std::shared_ptr<CMaterial> InMaterial);
 
 protected:
     virtual void LoadFromFile(const std::string& filepath) override;

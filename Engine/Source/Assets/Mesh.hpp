@@ -1,20 +1,22 @@
 #pragma once
 
 #include "AssetBase.hpp"
-#include "Texture.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
 #include <vulkan/vulkan.h>
+
+class CMaterial;
 
 
 struct SVertex {
     glm::vec3 Position;
     glm::vec3 Color;
     glm::vec2 TexCoord;
+    glm::vec3 Normal;
 
     static VkVertexInputBindingDescription GetBindingDescription();
-    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions();
+    static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions();
 };
 
 class CMesh {
@@ -22,7 +24,6 @@ public:
     CMesh() = default;
     ~CMesh();
 
-    // Move-only class to handle Vulkan resources safely
     CMesh(const CMesh&) = delete;
     CMesh& operator=(const CMesh&) = delete;
     CMesh(CMesh&& other) noexcept;
@@ -38,7 +39,7 @@ public:
 
     std::vector<SVertex> Vertices;
     std::vector<uint32_t> Indices;
-    std::shared_ptr<CTexture> Texture;
+    std::shared_ptr<CMaterial> Material;
 
 private:
     VkBuffer VertexBuffer = VK_NULL_HANDLE;

@@ -12,8 +12,8 @@ VkVertexInputBindingDescription SVertex::GetBindingDescription() {
     return bindingDescription;
 }
 
-std::array<VkVertexInputAttributeDescription, 3> SVertex::GetAttributeDescriptions() {
-    std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+std::array<VkVertexInputAttributeDescription, 4> SVertex::GetAttributeDescriptions() {
+    std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
 
     attributeDescriptions[0].binding = 0;
     attributeDescriptions[0].location = 0;
@@ -30,6 +30,11 @@ std::array<VkVertexInputAttributeDescription, 3> SVertex::GetAttributeDescriptio
     attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
     attributeDescriptions[2].offset = offsetof(SVertex, TexCoord);
 
+    attributeDescriptions[3].binding = 0;
+    attributeDescriptions[3].location = 3;
+    attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[3].offset = offsetof(SVertex, Normal);
+
     return attributeDescriptions;
 }
 
@@ -37,7 +42,7 @@ std::array<VkVertexInputAttributeDescription, 3> SVertex::GetAttributeDescriptio
 CMesh::~CMesh() { Cleanup(); }
 
 CMesh::CMesh(CMesh&& other) noexcept
-    : Vertices(std::move(other.Vertices)), Indices(std::move(other.Indices)), Texture(std::move(other.Texture)),
+    : Vertices(std::move(other.Vertices)), Indices(std::move(other.Indices)), Material(std::move(other.Material)),
       VertexBuffer(other.VertexBuffer), VertexBufferMemory(other.VertexBufferMemory), IndexBuffer(other.IndexBuffer),
       IndexBufferMemory(other.IndexBufferMemory) {
     other.VertexBuffer = VK_NULL_HANDLE;
@@ -52,7 +57,7 @@ CMesh& CMesh::operator=(CMesh&& other) noexcept {
 
         Vertices = std::move(other.Vertices);
         Indices = std::move(other.Indices);
-        Texture = std::move(other.Texture);
+        Material = std::move(other.Material);
         VertexBuffer = other.VertexBuffer;
         VertexBufferMemory = other.VertexBufferMemory;
         IndexBuffer = other.IndexBuffer;

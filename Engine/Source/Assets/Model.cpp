@@ -2,7 +2,7 @@
 
 #include "AssetManager.hpp"
 #include "EngineStatics.hpp"
-#include "Texture.hpp"
+#include "Material.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -10,9 +10,9 @@
 #include <filesystem>
 
 
-void CModel::SetTexture(std::shared_ptr<CTexture> InTexture) {
+void CModel::SetMaterial(std::shared_ptr<CMaterial> InMaterial) {
     for (auto& Mesh : Meshes) {
-        Mesh.Texture = InTexture;
+        Mesh.Material = InMaterial;
     }
 }
 
@@ -53,6 +53,12 @@ void CModel::LoadFromFile(const std::string& filepath) {
                 vertex.TexCoord = {aiMesh->mTextureCoords[0][v].x, aiMesh->mTextureCoords[0][v].y};
             } else {
                 vertex.TexCoord = {0.0f, 0.0f};
+            }
+
+            if (aiMesh->HasNormals()) {
+                vertex.Normal = {aiMesh->mNormals[v].x, aiMesh->mNormals[v].y, aiMesh->mNormals[v].z};
+            } else {
+                vertex.Normal = {0.0f, 1.0f, 0.0f};
             }
 
             mesh.Vertices.push_back(vertex);

@@ -108,7 +108,6 @@ private:
         const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features
     );
     VkFormat FindDepthFormat();
-    bool HasStencilComponent(VkFormat format);
 
     void PickPhysicalDevice();
     int RateDeviceSuitability(VkPhysicalDevice device);
@@ -174,9 +173,9 @@ private:
 
     friend class CEngine;
     std::shared_ptr<class CTexture> DefaultTexture;
+    std::shared_ptr<class CMaterial> DefaultMaterial;
 
     VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
 
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -212,6 +211,13 @@ private:
 
     VkSampleCountFlagBits GetMaxUsableSampleCount();
 
+public:
+    VkRenderPass GetRenderPass() const { return renderPass; }
+    VkDescriptorSetLayout GetGlobalSetLayout() const { return globalSetLayout; }
+    VkPipelineLayout GetPipelineLayout() const { return pipelineLayout; }
+    VkSampleCountFlagBits GetMSAASamples() const { return msaaSamples; }
+
+private:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
@@ -231,10 +237,6 @@ private:
 #else
     const bool enableValidationLayers = true;
 #endif
-
-    // Shader helpers
-    static std::vector<char> ReadFile(const std::string& filename);
-    VkShaderModule CreateShaderModule(const std::vector<char>& code);
 };
 
 

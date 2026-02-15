@@ -1,4 +1,5 @@
 #include "Texture.hpp"
+
 #include "EngineStatics.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -18,6 +19,7 @@ void CTexture::LoadFromFile(const std::string& FilePath) {
     stbi_uc* pixels = stbi_load(FilePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     if (!pixels) {
+        Log("Texture", ELogLevel::Error, "Failed to load texture image: " + FilePath);
         throw std::runtime_error("failed to load texture image!");
     }
 

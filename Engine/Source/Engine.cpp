@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 
+#include "Assets/Material.hpp"
 #include "Assets/Texture.hpp"
 #include "DefaultEngineConfig.hpp"
 #include "EngineStatics.hpp"
@@ -32,7 +33,8 @@ void CEngine::Initialize() {
     GAssetManager = new CAssetManager();
     GInputManager = new CInputManager();
 
-    Renderer->DefaultTexture = GAssetManager->GetAsset<CTexture>("Engine/Textures/DefaultTexture.png");
+    Renderer->DefaultTexture = GetAsset<CTexture>("Engine/Textures/DefaultTexture.png");
+    Renderer->DefaultMaterial = GetAsset<CMaterial>("Engine/Materials/SimpleShading.mat");
 
     Log("Engine", ELogLevel::Info, "Creating World: " + GEngineConfig.WorldClass->Name);
     World = std::unique_ptr<CWorld>(GEngineConfig.WorldClass.CreateObject());

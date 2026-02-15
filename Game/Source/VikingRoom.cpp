@@ -5,5 +5,5 @@
 
 AVikingRoom::AVikingRoom() {
     Model = GetAsset<CModel>("Game/viking_room/viking_room.obj");
-    Model->SetTexture(GetAsset<CTexture>("Game/viking_room/viking_room.png"));
+    Model->SetMaterial(GetAsset<CMaterial>("Game/viking_room/viking_room.mat"));
 }

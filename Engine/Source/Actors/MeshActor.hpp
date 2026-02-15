@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Actor.hpp"
+#include "Assets/Material.hpp"
 #include "Assets/Model.hpp"
 
 #include <memory>
