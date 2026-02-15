@@ -3,9 +3,6 @@
 #include "CoreMinimal.hpp"
 #include "World.hpp"
 
-class ACamera;
-class AVikingRoom;
-
 
 class CTestWorld : public CWorld {
     CLASS_BODY(CTestWorld, CWorld)
@@ -17,7 +14,7 @@ public:
     virtual void Tick(float DeltaTime) override;
 
 private:
-    ACamera* Camera;
+    class ACamera* Camera;
 
     SVector InputVector = SVector(0);
     float FlySpeed = 1;
@@ -27,5 +24,5 @@ private:
     void LookAround(SVector2 Delta);
     void ScaleFlySpeed(float Amount);
 
-    AVikingRoom* VikingRoomActor;
+    class AMeshActor* Character;
 };

@@ -564,34 +564,25 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
             vkCmdBindIndexBuffer(commandBuffer, Mesh.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-            VkPipeline pipelineToUse;
-            VkPipelineLayout layoutToUse = pipelineLayout;
-            VkDescriptorSet texSet = VK_NULL_HANDLE;
-
-            if (Mesh.Material) {
-                VkDescriptorSet matTex = VK_NULL_HANDLE;
-                if (CTexture* matTexture = Mesh.Material->GetTexture().get()) {
-                    matTex = matTexture->GetDescriptorSet();
-                }
-                if (matTex != VK_NULL_HANDLE) {
-                    texSet = matTex;
+            CMaterial* useMaterial = Mesh.Material.get();
+            if (!useMaterial || !useMaterial->IsValid()) {
+                useMaterial = DefaultMaterial.get();
+                if (!useMaterial || !useMaterial->IsValid()) {
+                    throw std::runtime_error("No valid material found for mesh and default material is also invalid!");
                 }
             }
-            if (texSet == VK_NULL_HANDLE) {
-                texSet = DefaultTexture->GetDescriptorSet();
+
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, useMaterial->GetPipeline());
+
+            useMaterial->UpdateBuffer();
+
+            VkDescriptorSet materialSet = useMaterial->GetDescriptorSet();
+            if (materialSet != VK_NULL_HANDLE) {
+                vkCmdBindDescriptorSets(
+                    commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, useMaterial->GetPipelineLayout(), 1, 1,
+                    &materialSet, 0, nullptr
+                );
             }
-
-            if (Mesh.Material && Mesh.Material->IsValid()) {
-                pipelineToUse = Mesh.Material->GetPipeline();
-            } else {
-                pipelineToUse = DefaultMaterial->GetPipeline();
-            }
-
-            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineToUse);
-
-            vkCmdBindDescriptorSets(
-                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layoutToUse, 1, 1, &texSet, 0, nullptr
-            );
 
             const STransform& transform = MeshActor->Transform;
             glm::mat4 modelMatrix = glm::mat4_cast(glm::quat(transform.Rotation.AsRadians().ToEuler().ToGLMVec3()));
@@ -601,9 +592,12 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
             modelMatrix[2] *= scale.Z;
             modelMatrix[3] = glm::vec4(transform.Position.ToGLMVec3(), 1.0f);
 
-            vkCmdPushConstants(
-                commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &modelMatrix
-            );
+            if (useMaterial && useMaterial->IsValid()) {
+                vkCmdPushConstants(
+                    commandBuffer, useMaterial->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
+                    &modelMatrix
+                );
+            }
 
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Mesh.GetIndices().size()), 1, 0, 0, 0);
         }

@@ -40,19 +40,21 @@ void CTestWorld::BeginPlay() {
     GInputManager->AddMappingContext(GameMC);
 
     Camera = SpawnActor<ACamera>();
+    Camera->Transform.Position = SVector(0, 0, 5);
     GEngine->SetActiveCamera(Camera);
-
-    VikingRoomActor = SpawnActor<AVikingRoom>();
 
     for (int i = 0; i < 100; i++) {
         AVikingRoom* actor = SpawnActor<AVikingRoom>();
         actor->Transform.Position = SVector((i % 10) * 3.0, (i / 10) * 3.0, 0);
     }
 
-    auto character = SpawnActor<AMeshActor>();
-    character->Model = GetAsset<CModel>("Game/Character/character.obj");
-    character->Transform.Scale = SVector(5.0);
-    character->Transform.Position = SVector(-5.0);
+    Character = SpawnActor<AMeshActor>();
+    Character->Model = GetAsset<CModel>("Game/Character/character.obj");
+    std::shared_ptr<CMaterial> mat = GetAsset<CMaterial>("Engine/Materials/SimpleShading.mat");
+    mat->SetProperty("LightColor", SVector(1.5));
+    Character->Model->SetMaterial(mat);
+    Character->Transform.Position = SVector(-3, 0, 0);
+    Character->Transform.Rotation = SRotator(0, 0, 90);
 }
 
 void CTestWorld::Tick(float DeltaTime) {
@@ -62,9 +64,7 @@ void CTestWorld::Tick(float DeltaTime) {
 
     InputVector = SVector(0);
 
-    VikingRoomActor->Transform.Rotation.Yaw += 10.0f * DeltaTime;
-    VikingRoomActor->Transform.Position.Z += -0.1 * DeltaTime;
-    VikingRoomActor->Transform.Scale += 0.1 * DeltaTime;
+    Character->Transform.Rotation.Yaw += 30 * DeltaTime;
 }
 
 void CTestWorld::OnEscapePressed() { GEngine->Stop(); }

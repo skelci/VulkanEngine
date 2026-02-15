@@ -175,6 +175,10 @@ private:
     std::shared_ptr<class CTexture> DefaultTexture;
     std::shared_ptr<class CMaterial> DefaultMaterial;
 
+public:
+    std::shared_ptr<class CTexture> GetDefaultTexture() const { return DefaultTexture; }
+
+private:
     VkPipelineLayout pipelineLayout;
 
     VkCommandPool commandPool;
@@ -214,12 +218,11 @@ private:
 public:
     VkRenderPass GetRenderPass() const { return renderPass; }
     VkDescriptorSetLayout GetGlobalSetLayout() const { return globalSetLayout; }
-    VkPipelineLayout GetPipelineLayout() const { return pipelineLayout; }
     VkSampleCountFlagBits GetMSAASamples() const { return msaaSamples; }
 
-private:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+private:
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
     const std::vector<const char*> validationLayers = {

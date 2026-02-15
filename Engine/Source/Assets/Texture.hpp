@@ -10,6 +10,7 @@ public:
     ~CTexture();
 
     VkDescriptorSet GetDescriptorSet() const { return DescriptorSet; }
+    VkImageView GetImageView() const { return ImageView; }
 
 protected:
     void LoadFromFile(const std::string& FilePath) override;

@@ -1,1 +1,2 @@
 Shader: Engine/Shaders/SolidColor.glsl
+Texture: Engine/Textures/DefaultTexture.png

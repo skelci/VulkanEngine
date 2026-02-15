@@ -49,8 +49,10 @@ struct SVector2 {
     SVector2 Cross(const SVector2& Other) const;
     SVector2 Rotated(const float Angle) const;
 
+    glm::vec2 ToGLMVec2() const { return glm::vec2(X, Y); }
     std::string ToString() const;
 };
+
 
 struct SVector {
     double X;
@@ -96,3 +98,5 @@ struct SVector {
     SRotator ToRotator() const;
     std::string ToString() const;
 };
+
+using SVector3 = SVector;
