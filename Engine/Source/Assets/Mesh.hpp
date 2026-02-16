@@ -19,7 +19,10 @@ struct SVertex {
     static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions();
 };
 
-class CMesh {
+class CMesh : public CAssetBase {
+protected:
+    void LoadFromFile(const std::string& FilePath) override;
+
 public:
     CMesh() = default;
     ~CMesh();

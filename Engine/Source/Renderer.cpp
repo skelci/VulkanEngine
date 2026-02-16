@@ -603,6 +603,42 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
         }
     }
 
+    for (const auto& widget : UIWidgets) {
+        CMaterial* widgetMaterial = widget->Mesh->Material.get();
+        if (!widgetMaterial || !widgetMaterial->IsValid()) {
+            widgetMaterial = DefaultWidgetMaterial.get();
+        }
+
+        VkBuffer vertexBuffers[] = {widget->Mesh->GetVertexBuffer()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffer, widget->Mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+        CMaterial* useMaterial = widgetMaterial;
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, useMaterial->GetPipeline());
+
+        useMaterial->UpdateBuffer();
+
+        VkDescriptorSet materialSet = useMaterial->GetDescriptorSet();
+        if (materialSet != VK_NULL_HANDLE) {
+            vkCmdBindDescriptorSets(
+                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, useMaterial->GetPipelineLayout(), 1, 1, &materialSet, 0,
+                nullptr
+            );
+        }
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(widget->Position.X, widget->Position.Y, 0.0f));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(widget->Size.X, widget->Size.Y, 1.0f));
+
+        vkCmdPushConstants(
+            commandBuffer, useMaterial->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
+            &modelMatrix
+        );
+
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(widget->Mesh->GetIndices().size()), 1, 0, 0, 0);
+    }
+
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -629,6 +665,8 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
         ActiveCamera->NearClip, ActiveCamera->FarClip
     );
     ubo.proj[1][1] *= -1;
+
+    ubo.ortho = glm::ortho(0.0f, (float)swapChainExtent.width, 0.0f, (float)swapChainExtent.height, -1.0f, 1.0f);
 
     memcpy(uniformBuffersMapped[frameIndex], &ubo, sizeof(ubo));
 }
@@ -1139,6 +1177,8 @@ void CRenderer::DrawFrame() {
 void CRenderer::Cleanup() {
     DefaultTexture.reset();
     DefaultMaterial.reset();
+    DefaultWidgetMaterial.reset();
+    UIWidgets.clear();
 
     CleanupSwapChain();
 

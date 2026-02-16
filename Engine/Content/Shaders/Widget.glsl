@@ -1,7 +1,9 @@
-#ifdef FRAGMENT
+// Type UI
 // Property vec4 Color 1 1 1 1
 // Property texture Texture Engine/Textures/White.png
+
+#ifdef FRAGMENT
 vec4 GetColor() {
-    return vec4(fragColor * texture(Texture, UV).rgb, 1.0) * mat.Color;
+    return mat.Color * texture(Texture, UV);
 }
 #endif

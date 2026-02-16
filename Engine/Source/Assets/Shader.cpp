@@ -68,10 +68,18 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     std::string userCode;
     std::stringstream ss(fileContent);
     std::string line;
+    std::string ShaderType = "Default";
     int textureBinding = 1; // Start after UBO (binding 0)
     int uboOffset = 0;
 
     while (std::getline(ss, line)) {
+        size_t typePos = line.find("// Type");
+        if (typePos != std::string::npos) {
+            std::stringstream typeSS(line.substr(typePos + 7));
+            typeSS >> ShaderType;
+            continue;
+        }
+
         size_t propPos = line.find("// Property");
         if (propPos != std::string::npos) {
             // Format: // Property <Type> <Name> [=] [DefaultValue]
@@ -162,6 +170,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "layout(set = 0, binding = 0) uniform CameraBuffer {\n";
     vertSS << "    mat4 view;\n";
     vertSS << "    mat4 proj;\n";
+    vertSS << "    mat4 ortho;\n";
     vertSS << "} camera;\n\n";
 
     // Inject Material UBO if needed
@@ -211,7 +220,11 @@ void CShader::LoadFromFile(const std::string& FilePath) {
 
     vertSS << "void main() {\n";
     vertSS << "    vec3 offset = GetWPO(inPosition);\n";
-    vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(inPosition + offset, 1.0);\n";
+    if (ShaderType == "UI") {
+        vertSS << "    gl_Position = camera.ortho * push.model * vec4(inPosition + offset, 1.0);\n";
+    } else {
+        vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(inPosition + offset, 1.0);\n";
+    }
     vertSS << "    fragColor = inColor;\n";
     vertSS << "    fragTexCoord = inTexCoord;\n";
     vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
@@ -245,7 +258,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     }
 
     fragSS << "layout(location = 0) in vec3 fragColor;\n";
-    fragSS << "layout(location = 1) in vec2 fragTexCoord;\n";
+    fragSS << "layout(location = 1) in vec2 UV;\n";
     fragSS << "layout(location = 2) in vec3 fragNormal;\n\n";
     fragSS << "layout(location = 0) out vec4 outColor;\n\n";
 

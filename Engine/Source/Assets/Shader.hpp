@@ -43,8 +43,12 @@ private:
     std::vector<SShaderProperty> Properties;
     std::unordered_map<std::string, std::string> DefaultValues;
     size_t UBOSize = 0;
+    std::string ShaderType;
 
     std::string ReadFileContent(const std::string& path);
     void SaveToFile(const std::string& path, const std::string& content);
     std::vector<char> ReadBinaryFile(const std::string& filename);
+
+public:
+    std::string GetShaderType() const { return ShaderType; }
 };

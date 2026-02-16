@@ -1,8 +1,10 @@
 #include "TestWorld.hpp"
 
 #include "Actors/Camera.hpp"
+#include "Assets/Material.hpp"
 #include "Assets/Model.hpp"
 #include "VikingRoom.hpp"
+#include "Widgets/Widget.hpp"
 
 
 void CTestWorld::BeginPlay() {
@@ -55,6 +57,10 @@ void CTestWorld::BeginPlay() {
     Character->Model->SetMaterial(mat);
     Character->Transform.Position = SVector(-3, 0, 0);
     Character->Transform.Rotation = SRotator(0, 0, 90);
+
+    WWidget* widget = GEngine->AddUIWidget<WWidget>();
+    widget->Position = SVector2(50, 50);
+    widget->Size = SVector2(100, 100);
 }
 
 void CTestWorld::Tick(float DeltaTime) {

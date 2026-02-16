@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Delegate.hpp"
+#include "Widgets/Widget.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -15,6 +16,8 @@
 #include <vector>
 
 class ACamera;
+class CMesh;
+class CMaterial;
 
 
 struct QueueFamilyIndices {
@@ -33,6 +36,7 @@ struct SwapChainSupportDetails {
 struct SUniformBufferObject {
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
+    alignas(16) glm::mat4 ortho;
 };
 
 
@@ -44,6 +48,15 @@ public:
     void Tick(float DeltaTime);
 
     void inline SetActiveCamera(ACamera* Camera) { ActiveCamera = Camera; }
+
+    template <typename T>
+    T* AddUIWidget() {
+        static_assert(std::is_base_of_v<WWidget, T>, "T must be a subclass of WWidget");
+        std::unique_ptr<T> widget = std::make_unique<T>();
+        T* ptr = widget.get();
+        UIWidgets.push_back(std::move(widget));
+        return ptr;
+    }
 
     // Handles buffer creation with staging buffer internally
     template <typename T>
@@ -157,6 +170,8 @@ private:
     VkQueue graphicsQueue;
     VkQueue presentQueue;
 
+    std::vector<std::unique_ptr<WWidget>> UIWidgets;
+
     VkSurfaceKHR surface;
 
     VkSwapchainKHR swapChain;
@@ -174,6 +189,7 @@ private:
     friend class CEngine;
     std::shared_ptr<class CTexture> DefaultTexture;
     std::shared_ptr<class CMaterial> DefaultMaterial;
+    std::shared_ptr<class CMaterial> DefaultWidgetMaterial;
 
 public:
     std::shared_ptr<class CTexture> GetDefaultTexture() const { return DefaultTexture; }

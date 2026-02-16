@@ -416,7 +416,18 @@ void CMaterial::CreatePipeline() {
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencil.depthTestEnable = VK_TRUE;
-    depthStencil.depthWriteEnable = VK_TRUE;
+
+    // Check for DepthTest override from shader
+    auto itDepth = Shader->GetDefaultValues().find("DepthTest");
+    if (itDepth != Shader->GetDefaultValues().end()) {
+        float val = std::stof(itDepth->second);
+        depthStencil.depthTestEnable = (val > 0.5f) ? VK_TRUE : VK_FALSE;
+    } else if (Shader->GetShaderType() == "UI") {
+        // Disable depth test for UI shaders by default
+        depthStencil.depthTestEnable = VK_FALSE;
+    }
+
+    depthStencil.depthWriteEnable = depthStencil.depthTestEnable;
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
     depthStencil.depthBoundsTestEnable = VK_FALSE;
     depthStencil.stencilTestEnable = VK_FALSE;

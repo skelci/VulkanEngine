@@ -9,7 +9,7 @@ vec4 GetColor() {
     float diff = max(dot(fragNormal, lightDir), 0.1);
     vec3 diffuse = diff * mat.LightColor;
     
-    vec4 texColor = texture(Texture, fragTexCoord);
+    vec4 texColor = texture(Texture, UV);
     return vec4(texColor.rgb * diffuse, texColor.a) * mat.Albedo;
 }
 #endif

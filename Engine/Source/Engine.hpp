@@ -39,5 +39,10 @@ public:
     CRenderer* GetRenderer() const { return Renderer; }
     void inline SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
 
+    template <typename T>
+    T* AddUIWidget() {
+        return Renderer->AddUIWidget<T>();
+    }
+
     CWorld* GetWorld() const { return World.get(); }
 };
