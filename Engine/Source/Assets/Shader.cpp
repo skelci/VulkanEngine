@@ -164,14 +164,21 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     }
     UBOSize = uboOffset;
 
+    // --- COMMON SHADER CODE GENERATION ---
+    std::stringstream commonSS;
+    commonSS << "#define saturate(x) clamp(x, 0.0, 1.0)\n";
+
     // --- VERTEX GENERATION ---
     std::stringstream vertSS;
     vertSS << "#version 450\n\n";
+    vertSS << commonSS.str() << "\n";
     vertSS << "layout(set = 0, binding = 0) uniform CameraBuffer {\n";
     vertSS << "    mat4 view;\n";
     vertSS << "    mat4 proj;\n";
     vertSS << "    mat4 ortho;\n";
-    vertSS << "} camera;\n\n";
+    vertSS << "    float time;\n";
+    vertSS << "} camera;\n";
+    vertSS << "#define Time camera.time\n\n";
 
     // Inject Material UBO if needed
     if (UBOSize > 0) {
@@ -205,7 +212,11 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "layout(location = 3) in vec3 inNormal;\n\n";
     vertSS << "layout(location = 0) out vec3 fragColor;\n";
     vertSS << "layout(location = 1) out vec2 fragTexCoord;\n";
-    vertSS << "layout(location = 2) out vec3 fragNormal;\n\n";
+    vertSS << "layout(location = 2) out vec3 fragNormal;\n";
+    vertSS << "layout(location = 3) out vec3 ModelWP;\n";
+    vertSS << "layout(location = 4) out vec3 FragWP;\n";
+    vertSS << "layout(location = 5) out vec3 CameraWP;\n";
+    vertSS << "layout(location = 6) out float outTime;\n\n";
 
     // Inject user code
     vertSS << "#define VERTEX\n";
@@ -219,6 +230,9 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     }
 
     vertSS << "void main() {\n";
+    vertSS << "    FragWP = vec3(push.model * vec4(inPosition, 1.0));\n";
+    vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
+    vertSS << "    CameraWP = camera.view[3].xyz;\n";
     vertSS << "    vec3 offset = GetWPO(inPosition);\n";
     if (ShaderType == "UI") {
         vertSS << "    gl_Position = camera.ortho * push.model * vec4(inPosition + offset, 1.0);\n";
@@ -229,11 +243,13 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "    fragTexCoord = inTexCoord;\n";
     vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
     vertSS << "    fragNormal = normalize(normalMatrix * inNormal);\n";
+    vertSS << "    outTime = Time;\n";
     vertSS << "}\n";
 
     // --- FRAGMENT GENERATION ---
     std::stringstream fragSS;
     fragSS << "#version 450\n\n";
+    fragSS << commonSS.str() << "\n";
 
     // Inject Material Scope (Same layouts)
     if (UBOSize > 0) {
@@ -257,9 +273,13 @@ void CShader::LoadFromFile(const std::string& FilePath) {
         }
     }
 
-    fragSS << "layout(location = 0) in vec3 fragColor;\n";
+    fragSS << "layout(location = 0) in vec3 FragColor;\n";
     fragSS << "layout(location = 1) in vec2 UV;\n";
-    fragSS << "layout(location = 2) in vec3 fragNormal;\n\n";
+    fragSS << "layout(location = 2) in vec3 Normal;\n";
+    fragSS << "layout(location = 3) in vec3 ModelWP;\n";
+    fragSS << "layout(location = 4) in vec3 FragWP;\n";
+    fragSS << "layout(location = 5) in vec3 CameraWP;\n";
+    fragSS << "layout(location = 6) in float Time;\n\n";
     fragSS << "layout(location = 0) out vec4 outColor;\n\n";
 
     // Inject user code

@@ -3,13 +3,24 @@
 // Property vec3 LightColor 1 1 1
 // Property vec3 LightDirection -0.5 -1 -0.5
 // Property vec4 Albedo 1 1 1 1
+// Property float Roughness 0.5
 
 vec4 GetColor() {
     vec3 lightDir = -normalize(mat.LightDirection);
-    float diff = max(dot(fragNormal, lightDir), 0.1);
-    vec3 diffuse = diff * mat.LightColor;
+    vec3 viewDir = normalize(CameraWP - FragWP);
+
+    // Blinn-Phong Specular
+    vec3 halfDir = normalize(lightDir + viewDir);
+    float specAngle = max(dot(Normal, halfDir), 0.0);
+    float shine = (1.0 - mat.Roughness) * 128.0;
+    float specular = pow(specAngle, shine);
+    float specularFactor = specular * (1.0 - mat.Roughness);
+
+    float diff = max(dot(Normal, lightDir), 0.1);
     
-    vec4 texColor = texture(Texture, UV);
-    return vec4(texColor.rgb * diffuse, texColor.a) * mat.Albedo;
+    vec4 texColor = texture(Texture, UV) * mat.Albedo;
+    vec3 diffuseComponent = diff * texColor.rgb * mat.LightColor;
+    vec3 specularComponent = specularFactor * mat.LightColor;
+    return vec4(diffuseComponent + specularComponent, texColor.a);
 }
 #endif
