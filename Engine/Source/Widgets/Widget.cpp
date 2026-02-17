@@ -1,13 +1,25 @@
 #include "Widget.hpp"
 
-#include "Assets/Material.hpp"
-#include "Assets/Mesh.hpp"
-#include "EngineStatics.hpp"
 
-
-WWidget::WWidget() {
-    Mesh = GetAsset<CMesh>("Engine/Meshes/Quad.obj");
-    Mesh->Material = GetAsset<CMaterial>("Engine/Materials/Widget.mat");
+std::vector<WWidget*> WWidget::GetChildren() const {
+    std::vector<WWidget*> childs;
+    for (const auto& child : Children) {
+        childs.push_back(child.get());
+    }
+    return childs;
 }
 
-void WWidget::SetMaterial(std::shared_ptr<CMaterial> Material) { Mesh->Material = Material; }
+std::vector<SWidgetWithTransform> WWidget::GetChildrensTransformed() const {
+    std::vector<SWidgetWithTransform> result;
+
+    SWidgetWithTransform self{Position, Size, const_cast<WWidget*>(this)};
+
+    for (const auto& child : Children) {
+        SWidgetWithTransform childWidget{child->Position + Position, child->Size, child.get()};
+        result.push_back(childWidget);
+        auto childTransformed = child->GetChildrensTransformed();
+        result.insert(result.end(), childTransformed.begin(), childTransformed.end());
+    }
+
+    return result;
+}

@@ -4,7 +4,7 @@
 #include "Assets/Material.hpp"
 #include "Assets/Model.hpp"
 #include "VikingRoom.hpp"
-#include "Widgets/Widget.hpp"
+#include "Widgets/Image.hpp"
 
 
 void CTestWorld::BeginPlay() {
@@ -58,9 +58,12 @@ void CTestWorld::BeginPlay() {
     Character->Transform.Position = SVector(-3, 0, 0);
     Character->Transform.Rotation = SRotator(0, 0, 90);
 
-    WWidget* widget = GEngine->AddUIWidget<WWidget>();
-    widget->Position = SVector2(50, 50);
+    WImage* widget = GEngine->AddUIWidget<WImage>();
+    widget->Position = SVector2(150, 150);
     widget->Size = SVector2(100, 100);
+
+    WImage* widget2 = widget->AddChild<WImage>();
+    widget2->Position = SVector2(75, 75);
 }
 
 void CTestWorld::Tick(float DeltaTime) {

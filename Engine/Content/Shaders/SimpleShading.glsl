@@ -12,9 +12,9 @@ vec4 GetColor() {
     // Blinn-Phong Specular
     vec3 halfDir = normalize(lightDir + viewDir);
     float specAngle = max(dot(Normal, halfDir), 0.0);
-    float shine = (1.0 - mat.Roughness) * 128.0;
+    float shine = one_minus(mat.Roughness) * 128.0;
     float specular = pow(specAngle, shine);
-    float specularFactor = specular * (1.0 - mat.Roughness);
+    float specularFactor = specular * one_minus(mat.Roughness);
 
     float diff = max(dot(Normal, lightDir), 0.1);
     

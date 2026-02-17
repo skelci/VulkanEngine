@@ -167,6 +167,8 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     // --- COMMON SHADER CODE GENERATION ---
     std::stringstream commonSS;
     commonSS << "#define saturate(x) clamp(x, 0.0, 1.0)\n";
+    commonSS << "#define lerp(a, b, t) mix(a, b, t)\n";
+    commonSS << "#define one_minus(x) (1.0 - x)\n";
 
     // --- VERTEX GENERATION ---
     std::stringstream vertSS;
@@ -216,7 +218,8 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "layout(location = 3) out vec3 ModelWP;\n";
     vertSS << "layout(location = 4) out vec3 FragWP;\n";
     vertSS << "layout(location = 5) out vec3 CameraWP;\n";
-    vertSS << "layout(location = 6) out float outTime;\n\n";
+    vertSS << "layout(location = 6) out vec3 ModelScale;\n";
+    vertSS << "layout(location = 7) out float outTime;\n\n";
 
     // Inject user code
     vertSS << "#define VERTEX\n";
@@ -233,6 +236,8 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "    FragWP = vec3(push.model * vec4(inPosition, 1.0));\n";
     vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
     vertSS << "    CameraWP = camera.view[3].xyz;\n";
+    vertSS
+        << "    ModelScale = vec3(length(push.model[0].xyz), length(push.model[1].xyz), length(push.model[2].xyz));\n";
     vertSS << "    vec3 offset = GetWPO(inPosition);\n";
     if (ShaderType == "UI") {
         vertSS << "    gl_Position = camera.ortho * push.model * vec4(inPosition + offset, 1.0);\n";
@@ -279,8 +284,13 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     fragSS << "layout(location = 3) in vec3 ModelWP;\n";
     fragSS << "layout(location = 4) in vec3 FragWP;\n";
     fragSS << "layout(location = 5) in vec3 CameraWP;\n";
-    fragSS << "layout(location = 6) in float Time;\n\n";
+    fragSS << "layout(location = 6) in vec3 ModelScale;\n";
+    fragSS << "layout(location = 7) in float Time;\n\n";
     fragSS << "layout(location = 0) out vec4 outColor;\n\n";
+
+    if (ShaderType == "UI") {
+        fragSS << "#define WidgetSize ModelScale.xy\n";
+    }
 
     // Inject user code
     fragSS << "#define FRAGMENT\n";
