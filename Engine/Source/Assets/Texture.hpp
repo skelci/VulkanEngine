@@ -12,6 +12,8 @@ public:
     VkDescriptorSet GetDescriptorSet() const { return DescriptorSet; }
     VkImageView GetImageView() const { return ImageView; }
 
+    void CreateFromBuffer(void* pixels, int texWidth, int texHeight);
+
 protected:
     void LoadFromFile(const std::string& FilePath) override;
 

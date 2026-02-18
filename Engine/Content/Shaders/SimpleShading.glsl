@@ -2,7 +2,7 @@
 // Property texture Texture Engine/Textures/White.png
 // Property vec3 LightColor 1 1 1
 // Property vec3 LightDirection -0.5 -1 -0.5
-// Property vec4 Albedo 1 1 1 1
+// Property vec4 Color 1 1 1 1
 // Property float Roughness 0.5
 
 vec4 GetColor() {
@@ -18,7 +18,7 @@ vec4 GetColor() {
 
     float diff = max(dot(Normal, lightDir), 0.1);
     
-    vec4 texColor = texture(Texture, UV) * mat.Albedo;
+    vec4 texColor = texture(Texture, UV) * mat.Color;
     vec3 diffuseComponent = diff * texColor.rgb * mat.LightColor;
     vec3 specularComponent = specularFactor * mat.LightColor;
     return vec4(diffuseComponent + specularComponent, texColor.a);

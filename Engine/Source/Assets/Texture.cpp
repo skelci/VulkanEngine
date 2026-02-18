@@ -14,13 +14,9 @@ CTexture::~CTexture() {
     vkFreeMemory(device, ImageMemory, nullptr);
 }
 
-void CTexture::LoadFromFile(const std::string& FilePath) {
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(FilePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
+void CTexture::CreateFromBuffer(void* pixels, int texWidth, int texHeight) {
     if (!pixels) {
-        Log("Texture", ELogLevel::Error, "Failed to load texture image: " + FilePath);
-        throw std::runtime_error("failed to load texture image!");
+        throw std::runtime_error("Found no pixels to create texture from!");
     }
 
     VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -41,8 +37,6 @@ void CTexture::LoadFromFile(const std::string& FilePath) {
     vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
     vkUnmapMemory(device, stagingBufferMemory);
-
-    stbi_image_free(pixels);
 
     Renderer->CreateImage(
         texWidth, texHeight, MipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
@@ -90,4 +84,18 @@ void CTexture::LoadFromFile(const std::string& FilePath) {
     descriptorWrite.pImageInfo = &imageInfo;
 
     vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+}
+
+void CTexture::LoadFromFile(const std::string& FilePath) {
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load(FilePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+    if (!pixels) {
+        Log("Texture", ELogLevel::Error, "Failed to load texture image: " + FilePath);
+        throw std::runtime_error("failed to load texture image!");
+    }
+
+    CreateFromBuffer(pixels, texWidth, texHeight);
+
+    stbi_image_free(pixels);
 }

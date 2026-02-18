@@ -6,4 +6,6 @@ $env:VK_LAYER_PATH = "C:/msys64/ucrt64/bin"
 $env:VK_INSTANCE_LAYERS = "VK_LAYER_KHRONOS_validation"
 
 ./scripts/build-debug.ps1
+if ($LastExitCode -ne 0) { exit $LastExitCode }
+
 ./build/VulkanEngine.exe

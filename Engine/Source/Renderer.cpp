@@ -7,6 +7,7 @@
 #include "Assets/Texture.hpp"
 #include "EngineStatics.hpp"
 #include "Widgets/Image.hpp"
+#include "Widgets/Text.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -606,20 +607,30 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
 
     for (const auto& widget : UIWidgets) {
         auto transformedWidgets = widget->GetChildrensTransformed();
-        transformedWidgets.push_back({widget->Position, widget->Size, widget.get()});
+        transformedWidgets.push_back({widget->Position, widget->GetSize(), widget.get()});
         for (const auto& transformedWidget : transformedWidgets) {
-            WImage* imageWidget = Cast<WImage>(transformedWidget.Widget);
-            if (!imageWidget) continue;
+            std::shared_ptr<CMesh> widgetMesh = nullptr;
 
-            CMaterial* widgetMaterial = imageWidget->Mesh->Material.get();
+            WImage* imageWidget = Cast<WImage>(transformedWidget.Widget);
+            WText* textWidget = Cast<WText>(transformedWidget.Widget);
+
+            if (imageWidget) {
+                widgetMesh = imageWidget->Mesh;
+            } else if (textWidget) {
+                widgetMesh = textWidget->Mesh;
+            }
+
+            if (!widgetMesh) continue;
+
+            CMaterial* widgetMaterial = widgetMesh->Material.get();
             if (!widgetMaterial || !widgetMaterial->IsValid()) {
                 widgetMaterial = DefaultWidgetMaterial.get();
             }
 
-            VkBuffer vertexBuffers[] = {imageWidget->Mesh->GetVertexBuffer()};
+            VkBuffer vertexBuffers[] = {widgetMesh->GetVertexBuffer()};
             VkDeviceSize offsets[] = {0};
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-            vkCmdBindIndexBuffer(commandBuffer, imageWidget->Mesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(commandBuffer, widgetMesh->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
             CMaterial* useMaterial = widgetMaterial;
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, useMaterial->GetPipeline());
@@ -645,14 +656,14 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
                 &modelMatrix
             );
 
-            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(imageWidget->Mesh->GetIndices().size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(widgetMesh->GetIndices().size()), 1, 0, 0, 0);
         }
+    }
 
-        vkCmdEndRenderPass(commandBuffer);
+    vkCmdEndRenderPass(commandBuffer);
 
-        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-            throw std::runtime_error("failed to record command buffer!");
-        }
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to record command buffer!");
     }
 }
 

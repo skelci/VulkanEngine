@@ -199,30 +199,79 @@ void CMaterial::CreateUniformBuffer() {
 }
 
 void CMaterial::UpdateBuffer() {
-    if (!bDirty || !UniformBufferMapped || Shader->GetUBOSize() == 0) return;
+    if (!bDirty) return;
 
-    for (const auto& prop : Shader->GetProperties()) {
-        if (prop.Type == EShaderPropertyType::Texture) continue;
+    if (UniformBufferMapped && Shader->GetUBOSize() > 0) {
+        for (const auto& prop : Shader->GetProperties()) {
+            if (prop.Type == EShaderPropertyType::Texture) continue;
 
-        if (Properties.find(prop.Name) != Properties.end()) {
-            auto& val = Properties[prop.Name];
-            uint8_t* dest = static_cast<uint8_t*>(UniformBufferMapped) + prop.Offset;
+            if (Properties.find(prop.Name) != Properties.end()) {
+                auto& val = Properties[prop.Name];
+                uint8_t* dest = static_cast<uint8_t*>(UniformBufferMapped) + prop.Offset;
 
-            if (prop.Type == EShaderPropertyType::Float) {
-                float f = std::get<float>(val);
-                std::memcpy(dest, &f, sizeof(float));
-            } else if (prop.Type == EShaderPropertyType::Vec2) {
-                glm::vec2 v = std::get<SVector2>(val).ToGLMVec2();
-                std::memcpy(dest, &v, sizeof(glm::vec2));
-            } else if (prop.Type == EShaderPropertyType::Vec3) {
-                glm::vec3 v = std::get<SVector3>(val).ToGLMVec3();
-                std::memcpy(dest, &v, sizeof(glm::vec3));
-            } else if (prop.Type == EShaderPropertyType::Vec4) {
-                SColor v = std::get<SColor>(val);
-                std::memcpy(dest, &v, sizeof(SColor));
+                if (prop.Type == EShaderPropertyType::Float) {
+                    float f = std::get<float>(val);
+                    std::memcpy(dest, &f, sizeof(float));
+                } else if (prop.Type == EShaderPropertyType::Vec2) {
+                    glm::vec2 v = std::get<SVector2>(val).ToGLMVec2();
+                    std::memcpy(dest, &v, sizeof(glm::vec2));
+                } else if (prop.Type == EShaderPropertyType::Vec3) {
+                    glm::vec3 v = std::get<SVector3>(val).ToGLMVec3();
+                    std::memcpy(dest, &v, sizeof(glm::vec3));
+                } else if (prop.Type == EShaderPropertyType::Vec4) {
+                    SColor v = std::get<SColor>(val);
+                    std::memcpy(dest, &v, sizeof(SColor));
+                }
             }
         }
     }
+
+    CRenderer* renderer = GEngine->GetRenderer();
+    VkDevice device = renderer->GetDevice();
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    // Keep track of image infos to ensure they stay in scope until vkUpdateDescriptorSets is called
+    std::vector<VkDescriptorImageInfo> imageInfos;
+
+    size_t texCount = 0;
+    for (const auto& prop : Shader->GetProperties()) {
+        if (prop.Type == EShaderPropertyType::Texture) texCount++;
+    }
+    imageInfos.reserve(texCount);
+
+    for (const auto& prop : Shader->GetProperties()) {
+        if (prop.Type == EShaderPropertyType::Texture) {
+            if (Properties.find(prop.Name) != Properties.end()) {
+                auto tex = std::get<std::shared_ptr<CTexture>>(Properties[prop.Name]);
+                if (tex) {
+                    VkDescriptorImageInfo imageInfo{};
+                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    imageInfo.imageView = tex->GetImageView();
+                    imageInfo.sampler = renderer->GetTextureSampler();
+
+                    imageInfos.push_back(imageInfo);
+
+                    VkWriteDescriptorSet descriptorWrite{};
+                    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    descriptorWrite.dstSet = DescriptorSet;
+                    descriptorWrite.dstBinding = prop.Binding;
+                    descriptorWrite.dstArrayElement = 0;
+                    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    descriptorWrite.descriptorCount = 1;
+                    descriptorWrite.pImageInfo = &imageInfos.back();
+
+                    descriptorWrites.push_back(descriptorWrite);
+                }
+            }
+        }
+    }
+
+    if (!descriptorWrites.empty()) {
+        vkUpdateDescriptorSets(
+            device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr
+        );
+    }
+
     bDirty = false;
 }
 

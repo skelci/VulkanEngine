@@ -130,6 +130,13 @@ CMesh& CMesh::operator=(CMesh&& other) noexcept {
     return *this;
 }
 
+void CMesh::SetData(const std::vector<SVertex>& InVertices, const std::vector<uint32_t>& InIndices) {
+    Cleanup();
+    Vertices = InVertices;
+    Indices = InIndices;
+    InitRenderResources();
+}
+
 void CMesh::Cleanup() {
     VkDevice device = GEngine->GetRenderer()->GetDevice();
 
@@ -152,6 +159,7 @@ void CMesh::Cleanup() {
 }
 
 void CMesh::InitRenderResources() {
+    if (Vertices.empty() || Indices.empty()) return;
     CRenderer* Renderer = GEngine->GetRenderer();
     Renderer->CreateBuffer(VertexBuffer, VertexBufferMemory, Vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
     Renderer->CreateBuffer(IndexBuffer, IndexBufferMemory, Indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);

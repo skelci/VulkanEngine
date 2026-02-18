@@ -16,9 +16,14 @@ struct SWidgetWithTransform {
 class WWidget : public CObject {
     CLASS_BODY(WWidget, CObject)
 
-public:
-    SVector2 Position = SVector2();
+protected:
     SVector2 Size = SVector2(100, 100);
+
+public:
+    virtual void SetSize(const SVector2& InSize) { Size = InSize; }
+    inline SVector2 GetSize() const { return Size; }
+
+    SVector2 Position = SVector2();
 
     WWidget* GetParent() const { return Parent; }
 
