@@ -15,6 +15,6 @@ inline void Log(const char* category, ELogLevel level, const std::string_view& m
 }
 
 template <typename T>
-inline std::shared_ptr<T> GetAsset(const std::string& filePath) {
-    return GAssetManager->GetAsset<T>(filePath);
+inline std::shared_ptr<T> GetAsset(const std::string& FilePath, bool GetUnique = false) {
+    return GAssetManager->GetAsset<T>(FilePath, GetUnique);
 }

@@ -6,8 +6,10 @@
 
 
 WImage::WImage() {
-    Mesh = GetAsset<CMesh>("Engine/Meshes/Quad.obj");
-    Mesh->Material = GetAsset<CMaterial>("Engine/Materials/Widget.mat");
+    Mesh = GetAsset<CMesh>("Engine/Meshes/Quad.obj", true);
+    Mesh->Material = GetAsset<CMaterial>("Engine/Materials/Image.mat", true);
 }
 
 void WImage::SetMaterial(std::shared_ptr<CMaterial> Material) { Mesh->Material = Material; }
+
+CMaterial* WImage::GetMaterial() const { return Mesh->Material.get(); }

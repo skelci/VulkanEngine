@@ -68,7 +68,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     std::string userCode;
     std::stringstream ss(fileContent);
     std::string line;
-    std::string ShaderType = "Default";
+    ShaderType = "Default";
     int textureBinding = 1; // Start after UBO (binding 0)
     int uboOffset = 0;
 

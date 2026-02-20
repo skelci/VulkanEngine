@@ -11,11 +11,11 @@
 class CAssetManager {
 public:
     template <typename T>
-    std::shared_ptr<T> GetAsset(const std::string& FilePath) {
+    std::shared_ptr<T> GetAsset(const std::string& FilePath, bool GetUnique = false) {
         static_assert(std::is_base_of_v<CAssetBase, T>, "T must be derived from CAssetBase");
 
         auto it = AssetCache.find(FilePath);
-        if (it != AssetCache.end()) {
+        if (it != AssetCache.end() && !GetUnique) {
             return std::static_pointer_cast<T>(it->second);
         }
 
@@ -37,7 +37,9 @@ public:
 
         std::shared_ptr<T> NewAsset = std::make_shared<T>();
         static_cast<CAssetBase*>(NewAsset.get())->LoadFromFile(FullAssetPath);
-        AssetCache[FilePath] = NewAsset;
+        if (!GetUnique) {
+            AssetCache[FilePath] = NewAsset;
+        }
         return NewAsset;
     }
 

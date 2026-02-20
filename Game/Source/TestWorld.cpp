@@ -59,20 +59,20 @@ void CTestWorld::BeginPlay() {
     Character->Transform.Position = SVector(-3, 0, 0);
     Character->Transform.Rotation = SRotator(0, 0, 90);
 
-    WImage* widget = GEngine->AddUIWidget<WImage>();
-    widget->Position = SVector2(150, 150);
-    widget->SetSize(SVector2(100, 100));
-    std::shared_ptr<CMaterial> widgetMat = GetAsset<CMaterial>("Engine/Materials/Widget.mat");
-    widgetMat->SetProperty("Texture", GetAsset<CFont>("Engine/Fonts/arialbd.ttf")->Texture);
-    widget->SetMaterial(widgetMat);
+    // WImage* widget = GEngine->AddUIWidget<WImage>();
+    // widget->Position = SVector2(150, 150);
+    // widget->SetSize(SVector2(100, 100));
+    // std::shared_ptr<CMaterial> widgetMat = GetAsset<CMaterial>("Engine/Materials/Widget.mat");
+    // widgetMat->SetProperty("Texture", GetAsset<CFont>("Engine/Fonts/arialbd.ttf")->Texture);
+    // widget->SetMaterial(widgetMat);
 
-    WWidget* widget2 = widget->AddChild<WWidget>();
-    widget2->Position = SVector2(100, 0);
-    widget2->SetSize(SVector2(100, 100));
+    // WWidget* widget2 = widget->AddChild<WWidget>();
+    // widget2->Position = SVector2(100, 0);
+    // widget2->SetSize(SVector2(100, 100));
 
-    WText* MyText = widget2->AddChild<WText>();
-    MyText->SetText("Hello Vulkan!");
-    MyText->SetSize(SVector2(50, 36));
+    // WText* MyText = widget2->AddChild<WText>();
+    // MyText->SetText("Hello Vulkan!");
+    // MyText->SetSize(SVector2(50, 36));
 }
 
 void CTestWorld::Tick(float DeltaTime) {

@@ -33,11 +33,11 @@ private:
     std::unique_ptr<CWorld> World;
 
 public:
-    void inline Stop() { IsRunning = false; }
+    void Stop() { IsRunning = false; }
 
     GLFWwindow* GetWindow() const { return Window; }
     CRenderer* GetRenderer() const { return Renderer; }
-    void inline SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
+    void SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
 
     template <typename T>
     T* AddUIWidget() {

@@ -1,6 +1,6 @@
 #include "DefaultEngineConfig.hpp"
 
-#include "TestWorld.hpp"
+#include "MenuMap.hpp"
 
 
-void ConfigureEngine() { GEngineConfig.WorldClass = CTestWorld::StaticClass(); }
+void ConfigureEngine() { GEngineConfig.WorldClass = CMenuMap::StaticClass(); }

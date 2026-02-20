@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Color.hpp"
 #include "DataTypes.hpp"
 #include "Delegate.hpp"
 #include "EngineStatics.hpp"

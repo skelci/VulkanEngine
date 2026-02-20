@@ -6,6 +6,7 @@
 #include "Assets/Model.hpp"
 #include "Assets/Texture.hpp"
 #include "EngineStatics.hpp"
+#include "Widgets/ContainerBase.hpp"
 #include "Widgets/Image.hpp"
 #include "Widgets/Text.hpp"
 
@@ -605,14 +606,17 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
         }
     }
 
-    for (const auto& widget : UIWidgets) {
-        auto transformedWidgets = widget->GetChildrensTransformed();
-        transformedWidgets.push_back({widget->Position, widget->GetSize(), widget.get()});
-        for (const auto& transformedWidget : transformedWidgets) {
+    for (const auto& w : UIWidgets) {
+        std::vector<WWidget*> widgets;
+        widgets.push_back(w.get());
+        if (WContainerBase* container = Cast<WContainerBase>(w.get())) {
+            widgets.append_range(container->GetChildren());
+        }
+        for (const auto& widget : widgets) {
             std::shared_ptr<CMesh> widgetMesh = nullptr;
 
-            WImage* imageWidget = Cast<WImage>(transformedWidget.Widget);
-            WText* textWidget = Cast<WText>(transformedWidget.Widget);
+            WImage* imageWidget = Cast<WImage>(widget);
+            WText* textWidget = Cast<WText>(widget);
 
             if (imageWidget) {
                 widgetMesh = imageWidget->Mesh;
@@ -646,10 +650,10 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
             }
 
             glm::mat4 modelMatrix = glm::mat4(1.0f);
-            modelMatrix = glm::translate(
-                modelMatrix, glm::vec3(transformedWidget.Position.X, transformedWidget.Position.Y, 0.0f)
-            );
-            modelMatrix = glm::scale(modelMatrix, glm::vec3(transformedWidget.Size.X, transformedWidget.Size.Y, 1.0f));
+            SWidgetTransform transform = widget->GetTransform();
+            transform.Position += transform.Size * 0.5f; // Center to pivot
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(transform.Position.X, transform.Position.Y, 0.0f));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(transform.Size.X, transform.Size.Y, 1.0f));
 
             vkCmdPushConstants(
                 commandBuffer, useMaterial->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
@@ -1464,6 +1468,10 @@ void CRenderer::DestroyDebugUtilsMessengerEXT(
     if (func != nullptr) {
         func(instance, debugMessenger, pAllocator);
     }
+}
+
+SVector2 CRenderer::GetScreenSize() const {
+    return SVector2(static_cast<float>(swapChainExtent.width), static_cast<float>(swapChainExtent.height));
 }
 
 uint32_t CRenderer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {

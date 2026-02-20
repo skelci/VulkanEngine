@@ -48,7 +48,7 @@ public:
 
     void Tick(float DeltaTime);
 
-    void inline SetActiveCamera(ACamera* Camera) { ActiveCamera = Camera; }
+    void SetActiveCamera(ACamera* Camera) { ActiveCamera = Camera; }
 
     template <typename T>
     T* AddUIWidget() {
@@ -194,6 +194,7 @@ private:
 
 public:
     std::shared_ptr<class CTexture> GetDefaultTexture() const { return DefaultTexture; }
+    SVector2 GetScreenSize() const;
 
 private:
     VkPipelineLayout pipelineLayout;
@@ -261,7 +262,7 @@ private:
 
 
 template <typename T>
-inline void CRenderer::CreateBuffer(
+void CRenderer::CreateBuffer(
     VkBuffer& buffer, VkDeviceMemory& bufferMemory, const std::vector<T>& data, VkBufferUsageFlags usage
 ) {
     assert(!data.empty() && "Data array is empty, cannot create buffer!");

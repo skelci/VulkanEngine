@@ -68,7 +68,7 @@ CInputManager::CInputManager() {
         CInputManager::OnCursor(SVector2(x, y));
     });
 
-    glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    SetInputMode(true);
 }
 
 void CInputManager::Tick(float DeltaTime) {
@@ -109,6 +109,10 @@ void CInputManager::RemoveMappingContext(SInputMappingContext* Context) {
         ),
         MappingContexts.end()
     );
+}
+
+void CInputManager::SetInputMode(bool bCursorVisible) {
+    glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, bCursorVisible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
 void CInputManager::ProcessDigitalInput(EKeys Key, SInputAction Action) {

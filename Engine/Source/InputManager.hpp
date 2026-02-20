@@ -145,7 +145,7 @@ struct SInputMappingContext {
 
     void RemoveMapping(EKeys Key);
 
-    inline const std::unordered_map<EKeys, SInputAction>& GetMappings() const { return KeyMappings; }
+    const std::unordered_map<EKeys, SInputAction>& GetMappings() const { return KeyMappings; }
 
 private:
     std::unordered_map<EKeys, SInputAction> KeyMappings;
@@ -160,6 +160,8 @@ public:
 
     void AddMappingContext(SInputMappingContext* Context);
     void RemoveMappingContext(SInputMappingContext* Context);
+
+    void SetInputMode(bool bCursorVisible);
 
 private:
     std::vector<std::unique_ptr<SInputMappingContext>> MappingContexts;

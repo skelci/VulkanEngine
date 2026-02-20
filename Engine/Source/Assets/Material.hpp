@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AssetBase.hpp"
-#include "Color.hpp"
 #include "EngineStatics.hpp"
 #include "Shader.hpp"
 #include "Texture.hpp"
@@ -41,7 +40,7 @@ public:
             if (prop->Type == EShaderPropertyType::Vec2) typeMatch = true;
         } else if constexpr (std::is_same_v<T, SVector3>) {
             if (prop->Type == EShaderPropertyType::Vec3) typeMatch = true;
-        } else if constexpr (std::is_same_v<T, SColor>) {
+        } else if constexpr (std::is_same_v<T, SVector4>) {
             if (prop->Type == EShaderPropertyType::Vec4) typeMatch = true;
         } else if constexpr (std::is_same_v<T, std::shared_ptr<CTexture>>) {
             if (prop->Type == EShaderPropertyType::Texture) typeMatch = true;
@@ -69,7 +68,7 @@ protected:
 private:
     std::shared_ptr<CShader> Shader;
 
-    std::map<std::string, std::variant<float, SVector2, SVector3, SColor, std::shared_ptr<CTexture>>> Properties;
+    std::map<std::string, std::variant<float, SVector2, SVector3, SVector4, std::shared_ptr<CTexture>>> Properties;
 
     VkPipeline Pipeline = VK_NULL_HANDLE;
     VkPipelineLayout PipelineLayout = VK_NULL_HANDLE;

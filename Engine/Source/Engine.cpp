@@ -35,7 +35,7 @@ void CEngine::Initialize() {
 
     Renderer->DefaultTexture = GetAsset<CTexture>("Engine/Textures/DefaultTexture.png");
     Renderer->DefaultMaterial = GetAsset<CMaterial>("Engine/Materials/SimpleShading.mat");
-    Renderer->DefaultWidgetMaterial = GetAsset<CMaterial>("Engine/Materials/Widget.mat");
+    Renderer->DefaultWidgetMaterial = GetAsset<CMaterial>("Engine/Materials/Image.mat");
 
     Log("Engine", ELogLevel::Info, "Creating World: " + GEngineConfig.WorldClass->Name);
     World = std::unique_ptr<CWorld>(GEngineConfig.WorldClass.CreateObject());

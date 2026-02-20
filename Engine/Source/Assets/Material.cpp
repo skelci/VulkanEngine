@@ -83,7 +83,7 @@ void CMaterial::LoadFromFile(const std::string& FilePath) {
                 std::istringstream ss(it->second);
                 float x, y, z, w;
                 ss >> x >> y >> z >> w;
-                Properties[prop.Name] = SColor(x, y, z, w);
+                Properties[prop.Name] = SVector4(x, y, z, w);
             }
         } else if (prop.Type == EShaderPropertyType::Texture) {
             auto it = Shader->GetDefaultValues().find(prop.Name);
@@ -129,7 +129,7 @@ void CMaterial::LoadFromFile(const std::string& FilePath) {
                     } else if (prop->Type == EShaderPropertyType::Vec4) {
                         float x, y, z, w;
                         valSS >> x >> y >> z >> w;
-                        Properties[key] = SColor(x, y, z, w);
+                        Properties[key] = SVector4(x, y, z, w);
                     } else if (prop->Type == EShaderPropertyType::Texture) {
                         Properties[key] = GetAsset<CTexture>(valueStr);
                     }
@@ -219,8 +219,8 @@ void CMaterial::UpdateBuffer() {
                     glm::vec3 v = std::get<SVector3>(val).ToGLMVec3();
                     std::memcpy(dest, &v, sizeof(glm::vec3));
                 } else if (prop.Type == EShaderPropertyType::Vec4) {
-                    SColor v = std::get<SColor>(val);
-                    std::memcpy(dest, &v, sizeof(SColor));
+                    SVector4 v = std::get<SVector4>(val);
+                    std::memcpy(dest, &v, sizeof(SVector4));
                 }
             }
         }

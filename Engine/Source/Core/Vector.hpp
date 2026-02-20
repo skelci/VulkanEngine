@@ -11,41 +11,41 @@ struct SRotator;
 
 
 struct SVector2 {
-    double X;
-    double Y;
+    float X;
+    float Y;
 
     SVector2() : X(0), Y(0) {}
-    SVector2(double uniform) : X(uniform), Y(uniform) {}
-    SVector2(double x, double y) : X(x), Y(y) {}
+    SVector2(float uniform) : X(uniform), Y(uniform) {}
+    SVector2(float x, float y) : X(x), Y(y) {}
 
     SVector2 operator+(const SVector2& Other) const;
-    SVector2 operator+(double Scalar) const;
+    SVector2 operator+(float Scalar) const;
     SVector2 operator-(const SVector2& Other) const;
-    SVector2 operator-(double Scalar) const;
+    SVector2 operator-(float Scalar) const;
 
     SVector2 operator*(const SVector2& Other) const;
-    SVector2 operator*(double Scalar) const;
+    SVector2 operator*(float Scalar) const;
     SVector2 operator/(const SVector2& Other) const;
-    SVector2 operator/(double Scalar) const;
+    SVector2 operator/(float Scalar) const;
 
     SVector2& operator+=(const SVector2& Other);
-    SVector2& operator+=(double Scalar);
+    SVector2& operator+=(float Scalar);
     SVector2& operator-=(const SVector2& Other);
-    SVector2& operator-=(double Scalar);
+    SVector2& operator-=(float Scalar);
 
     SVector2& operator*=(const SVector2& Other);
-    SVector2& operator*=(double Scalar);
+    SVector2& operator*=(float Scalar);
     SVector2& operator/=(const SVector2& Other);
-    SVector2& operator/=(double Scalar);
+    SVector2& operator/=(float Scalar);
 
-    double LengthSquared() const;
-    double Length() const;
+    float LengthSquared() const;
+    float Length() const;
 
     SVector2 Normalized() const;
-    SVector2 SafeNormalized(double Tolerance = SMALL_NUMBER) const;
+    SVector2 SafeNormalized(float Tolerance = SMALL_NUMBER) const;
     SVector2 Abs() const;
 
-    double Dot(const SVector2& Other) const;
+    float Dot(const SVector2& Other) const;
     SVector2 Cross(const SVector2& Other) const;
     SVector2 Rotated(const float Angle) const;
 
@@ -62,6 +62,10 @@ struct SVector {
     SVector() : X(0.0), Y(0.0), Z(0.0) {}
     SVector(double uniform) : X(uniform), Y(uniform), Z(uniform) {}
     SVector(double x, double y, double z) : X(x), Y(y), Z(z) {}
+
+    SVector2 XY() const { return SVector2(X, Y); }
+    SVector2 XZ() const { return SVector2(X, Z); }
+    SVector2 YZ() const { return SVector2(Y, Z); }
 
     SVector operator+(const SVector& Other) const;
     SVector operator+(double Scalar) const;
@@ -100,3 +104,34 @@ struct SVector {
 };
 
 using SVector3 = SVector;
+
+
+struct SVector4 {
+    union {
+        struct {
+            float R;
+            float G;
+            float B;
+            float A;
+        };
+        struct {
+            float X;
+            float Y;
+            float Z;
+            float W;
+        };
+    };
+
+    SVector4() : X(0), Y(0), Z(0), W(0) {}
+    SVector4(float uniform) : X(uniform), Y(uniform), Z(uniform), W(uniform) {}
+    SVector4(float xy, float zw) : X(xy), Y(xy), Z(zw), W(zw) {}
+    SVector4(float r, float g, float b, float a = 1.0f) : X(r), Y(g), Z(b), W(a) {}
+
+    SVector2 XY() const { return SVector2(X, Y); }
+    SVector2 XZ() const { return SVector2(X, Z); }
+    SVector2 YW() const { return SVector2(Y, W); }
+    SVector2 ZW() const { return SVector2(Z, W); }
+
+    glm::vec4 ToGLMVec4() const { return glm::vec4(X, Y, Z, W); }
+    std::string ToString() const;
+};

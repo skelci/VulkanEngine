@@ -5,20 +5,20 @@
 
 SVector2 SVector2::operator+(const SVector2& Other) const { return SVector2(X + Other.X, Y + Other.Y); }
 
-SVector2 SVector2::operator+(double Scalar) const { return SVector2(X + Scalar, Y + Scalar); }
+SVector2 SVector2::operator+(float Scalar) const { return SVector2(X + Scalar, Y + Scalar); }
 
 SVector2 SVector2::operator-(const SVector2& Other) const { return SVector2(X - Other.X, Y - Other.Y); }
 
-SVector2 SVector2::operator-(double Scalar) const { return SVector2(X - Scalar, Y - Scalar); }
+SVector2 SVector2::operator-(float Scalar) const { return SVector2(X - Scalar, Y - Scalar); }
 
 SVector2 SVector2::operator*(const SVector2& Other) const { return SVector2(X * Other.X, Y * Other.Y); }
 
-SVector2 SVector2::operator*(double Scalar) const { return SVector2(X * Scalar, Y * Scalar); }
+SVector2 SVector2::operator*(float Scalar) const { return SVector2(X * Scalar, Y * Scalar); }
 
 SVector2 SVector2::operator/(const SVector2& Other) const { return SVector2(X / Other.X, Y / Other.Y); }
 
-SVector2 SVector2::operator/(double Scalar) const {
-    const double InvScalar = 1 / Scalar;
+SVector2 SVector2::operator/(float Scalar) const {
+    const float InvScalar = 1 / Scalar;
     return SVector2(X * InvScalar, Y * InvScalar);
 }
 
@@ -28,7 +28,7 @@ SVector2& SVector2::operator+=(const SVector2& Other) {
     return *this;
 }
 
-SVector2& SVector2::operator+=(double Scalar) {
+SVector2& SVector2::operator+=(float Scalar) {
     X += Scalar;
     Y += Scalar;
     return *this;
@@ -40,7 +40,7 @@ SVector2& SVector2::operator-=(const SVector2& Other) {
     return *this;
 }
 
-SVector2& SVector2::operator-=(double Scalar) {
+SVector2& SVector2::operator-=(float Scalar) {
     X -= Scalar;
     Y -= Scalar;
     return *this;
@@ -52,7 +52,7 @@ SVector2& SVector2::operator*=(const SVector2& Other) {
     return *this;
 }
 
-SVector2& SVector2::operator*=(double Scalar) {
+SVector2& SVector2::operator*=(float Scalar) {
     X *= Scalar;
     Y *= Scalar;
     return *this;
@@ -64,34 +64,34 @@ SVector2& SVector2::operator/=(const SVector2& Other) {
     return *this;
 }
 
-SVector2& SVector2::operator/=(double Scalar) {
-    const double InvScalar = 1 / Scalar;
+SVector2& SVector2::operator/=(float Scalar) {
+    const float InvScalar = 1 / Scalar;
     X *= InvScalar;
     Y *= InvScalar;
     return *this;
 }
 
-double SVector2::LengthSquared() const { return X * X + Y * Y; }
+float SVector2::LengthSquared() const { return X * X + Y * Y; }
 
-double SVector2::Length() const { return std::sqrt(LengthSquared()); }
+float SVector2::Length() const { return std::sqrt(LengthSquared()); }
 
 SVector2 SVector2::Normalized() const {
-    const double InvLen = 1 / Length();
+    const float InvLen = 1 / Length();
     return SVector2(X * InvLen, Y * InvLen);
 }
 
-SVector2 SVector2::SafeNormalized(double Tolerance) const {
-    const double Len = Length();
+SVector2 SVector2::SafeNormalized(float Tolerance) const {
+    const float Len = Length();
     if (Len < Tolerance) {
         return SVector2();
     }
-    const double InvLen = 1.0 / Len;
+    const float InvLen = 1.0f / Len;
     return SVector2(X * InvLen, Y * InvLen);
 }
 
 SVector2 SVector2::Abs() const { return SVector2(std::abs(X), std::abs(Y)); }
 
-double SVector2::Dot(const SVector2& Other) const { return X * Other.X + Y * Other.Y; }
+float SVector2::Dot(const SVector2& Other) const { return X * Other.X + Y * Other.Y; }
 
 SVector2 SVector2::Cross(const SVector2& Other) const {
     return SVector2(X * Other.Y - Y * Other.X, Y * Other.X - X * Other.Y);
@@ -106,6 +106,7 @@ SVector2 SVector2::Rotated(const float Angle) const {
 
 std::string SVector2::ToString() const { return "SVector2(" + std::to_string(X) + ", " + std::to_string(Y) + ")"; }
 
+// ====== SVector ======
 
 SVector SVector::operator+(const SVector& Other) const { return SVector(X + Other.X, Y + Other.Y, Z + Other.Z); }
 
@@ -244,4 +245,11 @@ SRotator SVector::ToRotator() const { return SRotator(X, Y, Z); }
 
 std::string SVector::ToString() const {
     return "SVector(" + std::to_string(X) + ", " + std::to_string(Y) + ", " + std::to_string(Z) + ")";
+}
+
+// ====== SVector4 ======
+
+std::string SVector4::ToString() const {
+    return "SVector4(" + std::to_string(R) + ", " + std::to_string(G) + ", " + std::to_string(B) + ", " +
+           std::to_string(A) + ")";
 }

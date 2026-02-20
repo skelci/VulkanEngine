@@ -16,11 +16,12 @@ float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
 }
 
 vec4 GetColor() {
-    vec2 p = UV * WidgetSize;
-    float d = sdRoundedBox(p - WidgetSize * 0.5, WidgetSize * 0.5, mat.CornerRadius);
+    vec2 halfSize = WidgetSize * 0.5; 
+    vec2 p = UV * halfSize * 2.0;
+    float d = sdRoundedBox(p - halfSize, halfSize, mat.CornerRadius);
 
     vec4 innerWidth = max(mat.CornerRadius - mat.BorderWidth * 0.75, 0.0);
-    float innerD = sdRoundedBox(p - WidgetSize * 0.5, WidgetSize * 0.5 - mat.BorderWidth, innerWidth);
+    float innerD = sdRoundedBox(p - halfSize, halfSize - mat.BorderWidth, innerWidth);
 
     float alpha = 1.0 - smoothstep(-0.5, 0.5, d);
     float borderMix = smoothstep(-0.5, 0.5, innerD);
