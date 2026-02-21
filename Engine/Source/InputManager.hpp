@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DataTypes.hpp"
+#include "Delegate.hpp"
 #include "Vector.hpp"
 
 #include <functional>
@@ -11,7 +13,7 @@
 #include <vector>
 
 
-enum class EKeys : uint16_t {
+enum class EKeys : uint8 {
     A,
     B,
     C,
@@ -74,20 +76,22 @@ using FDigitalAction = std::function<void()>;
 using FAxis1DAction = std::function<void(float)>;
 using FAxis2DAction = std::function<void(SVector2)>;
 
-using FInputCallback = std::variant<std::monostate, FDigitalAction, FAxis1DAction, FAxis2DAction>;
+using FInputCallback = std::variant<FDigitalAction, FAxis1DAction, FAxis2DAction>;
 
 struct SInputAction {
-    EInputValueType ValueType = EInputValueType::Digital;
-    EInputEvent InputEvent = EInputEvent::Pressed;
-    FInputCallback Callback = std::monostate{};
+    EInputValueType ValueType;
+    EInputEvent InputEvent;
+    FInputCallback Callback;
+    std::weak_ptr<bool> ValidityToken;
 
-    SInputAction() = default;
+    bool IsValid() const { return !ValidityToken.expired(); }
 
     template <EInputValueType Type, typename Obj, typename MemFn, typename... Args>
     static SInputAction Create(EInputEvent evt, Obj* object, MemFn fn, Args&&... args) {
         SInputAction action;
         action.ValueType = Type;
         action.InputEvent = evt;
+        action.ValidityToken = object->GetWeakPtr();
 
         auto tupleArgs = std::make_tuple(std::forward<Args>(args)...);
 
@@ -145,10 +149,10 @@ struct SInputMappingContext {
 
     void RemoveMapping(EKeys Key);
 
-    const std::unordered_map<EKeys, SInputAction>& GetMappings() const { return KeyMappings; }
+    const std::unordered_map<EKeys, std::vector<SInputAction>>& GetMappings() const { return KeyMappings; }
 
 private:
-    std::unordered_map<EKeys, SInputAction> KeyMappings;
+    std::unordered_map<EKeys, std::vector<SInputAction>> KeyMappings;
 };
 
 
@@ -160,6 +164,9 @@ public:
 
     void AddMappingContext(SInputMappingContext* Context);
     void RemoveMappingContext(SInputMappingContext* Context);
+
+    SVector2 GetCursorPosition() const { return CursorPosition; }
+    TDelegate<char> OnCharInput;
 
     void SetInputMode(bool bCursorVisible);
 
@@ -175,6 +182,8 @@ private:
 
     static void OnScroll(float delta);
     static void OnCursor(SVector2 delta);
+    static void OnChar(unsigned int codepoint);
+    static void OnKey(int key, int scancode, int action, int mods);
 
     float ScrollDelta = 0;
     SVector2 CursorPosition = SVector2();

@@ -13,13 +13,25 @@
 
 
 CMaterial::~CMaterial() {
-    VkDevice device = GEngine->GetRenderer()->GetDevice();
-    if (Pipeline != VK_NULL_HANDLE) vkDestroyPipeline(device, Pipeline, nullptr);
-    if (PipelineLayout != VK_NULL_HANDLE) vkDestroyPipelineLayout(device, PipelineLayout, nullptr);
-    if (DescriptorSetLayout != VK_NULL_HANDLE) vkDestroyDescriptorSetLayout(device, DescriptorSetLayout, nullptr);
-    if (DescriptorPool != VK_NULL_HANDLE) vkDestroyDescriptorPool(device, DescriptorPool, nullptr);
-    if (UniformBuffer != VK_NULL_HANDLE) vkDestroyBuffer(device, UniformBuffer, nullptr);
-    if (UniformBufferMemory != VK_NULL_HANDLE) vkFreeMemory(device, UniformBufferMemory, nullptr);
+    CRenderer* Renderer = GEngine->GetRenderer();
+    VkDevice device = Renderer->GetDevice();
+    if (Pipeline != VK_NULL_HANDLE) {
+        VkPipeline p = Pipeline;
+        VkPipelineLayout pl = PipelineLayout;
+        VkDescriptorSetLayout dsl = DescriptorSetLayout;
+        VkDescriptorPool dp = DescriptorPool;
+        VkBuffer ub = UniformBuffer;
+        VkDeviceMemory ubm = UniformBufferMemory;
+
+        Renderer->EnqueueForDeletion([device, p, pl, dsl, dp, ub, ubm]() {
+            vkDestroyPipeline(device, p, nullptr);
+            vkDestroyPipelineLayout(device, pl, nullptr);
+            vkDestroyDescriptorSetLayout(device, dsl, nullptr);
+            vkDestroyDescriptorPool(device, dp, nullptr);
+            vkDestroyBuffer(device, ub, nullptr);
+            vkFreeMemory(device, ubm, nullptr);
+        });
+    }
 }
 
 void CMaterial::LoadFromFile(const std::string& FilePath) {
@@ -466,7 +478,6 @@ void CMaterial::CreatePipeline() {
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencil.depthTestEnable = VK_TRUE;
 
-    // Check for DepthTest override from shader
     auto itDepth = Shader->GetDefaultValues().find("DepthTest");
     if (itDepth != Shader->GetDefaultValues().end()) {
         float val = std::stof(itDepth->second);
@@ -504,10 +515,8 @@ void CMaterial::CreatePipeline() {
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
-    // We have 2 descriptor sets:
     // Set 0: Global (Projs, Models) - managed by Renderer
     // Set 1: Material (UBO, Texture) - managed by Material
-
     std::vector<VkDescriptorSetLayout> setLayouts = {renderer->GetGlobalSetLayout(), DescriptorSetLayout};
 
     if (DescriptorSetLayout == VK_NULL_HANDLE && Shader->GetProperties().empty()) {

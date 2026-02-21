@@ -37,7 +37,7 @@ void CEngine::Initialize() {
     Renderer->DefaultMaterial = GetAsset<CMaterial>("Engine/Materials/SimpleShading.mat");
     Renderer->DefaultWidgetMaterial = GetAsset<CMaterial>("Engine/Materials/Image.mat");
 
-    Log("Engine", ELogLevel::Info, "Creating World: " + GEngineConfig.WorldClass->Name);
+    Log("Engine", ELogLevel::Info, "Loading World: " + GEngineConfig.WorldClass->Name);
     World = std::unique_ptr<CWorld>(GEngineConfig.WorldClass.CreateObject());
     World->BeginPlay();
 
@@ -48,6 +48,13 @@ void CEngine::MainLoop() {
     glfwPollEvents();
     if (glfwWindowShouldClose(Window)) {
         IsRunning = false;
+    }
+
+    if (PendingWorldClass) {
+        Log("Engine", ELogLevel::Info, "Loading World: " + PendingWorldClass->Name);
+        World = std::unique_ptr<CWorld>(PendingWorldClass.CreateObject());
+        World->BeginPlay();
+        PendingWorldClass = nullptr;
     }
 
     const auto now = std::chrono::steady_clock::now();

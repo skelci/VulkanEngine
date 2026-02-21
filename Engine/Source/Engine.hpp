@@ -9,9 +9,6 @@
 #include <chrono>
 #include <memory>
 
-class ACamera;
-enum class EKeys : uint16_t;
-
 
 class CEngine {
 public:
@@ -30,6 +27,7 @@ private:
 
     CRenderer* Renderer;
 
+    TSubclassOf<CWorld> PendingWorldClass;
     std::unique_ptr<CWorld> World;
 
 public:
@@ -37,12 +35,7 @@ public:
 
     GLFWwindow* GetWindow() const { return Window; }
     CRenderer* GetRenderer() const { return Renderer; }
-    void SetActiveCamera(ACamera* Camera) { Renderer->SetActiveCamera(Camera); }
-
-    template <typename T>
-    T* AddUIWidget() {
-        return Renderer->AddUIWidget<T>();
-    }
 
     CWorld* GetWorld() const { return World.get(); }
+    void OpenWorld(const TSubclassOf<CWorld>& WorldClass) { PendingWorldClass = WorldClass; }
 };

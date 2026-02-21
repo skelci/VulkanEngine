@@ -1,6 +1,6 @@
 #include "DefaultEngineConfig.hpp"
 
-#include "MenuMap.hpp"
+#include "Maps/MenuMap.hpp"
 
 
 void ConfigureEngine() { GEngineConfig.WorldClass = CMenuMap::StaticClass(); }

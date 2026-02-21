@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <type_traits>
 
@@ -58,7 +59,8 @@ private:
 
 class CObject {
 public:
-    virtual ~CObject() = default;
+    CObject();
+    virtual ~CObject();
 
     virtual CClass* GetClass() const { return StaticClass(); }
 
@@ -68,7 +70,16 @@ public:
         return GetClass()->IsChildOf(T::StaticClass());
     }
 
+    // Returns a weak ptr that expires when this object is destroyed.
+    std::weak_ptr<bool> GetWeakPtr() const { return ValidityToken; }
+
+    // Static helper to check if an object associated with a validity token is largely safe to access
+    static bool IsValid(const std::weak_ptr<bool>& Token) { return !Token.expired(); }
+
     static CClass* StaticClass();
+
+private:
+    std::shared_ptr<bool> ValidityToken;
 };
 
 

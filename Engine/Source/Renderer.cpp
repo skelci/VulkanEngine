@@ -60,6 +60,8 @@ void CRenderer::InitVulkan() {
     CreateDescriptorSets();
     CreateCommandBuffers();
     CreateSyncObjects();
+
+    DeletionQueues.resize(MAX_FRAMES_IN_FLIGHT);
 }
 
 void CRenderer::CreateInstance() {
@@ -624,7 +626,7 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
                 widgetMesh = textWidget->Mesh;
             }
 
-            if (!widgetMesh) continue;
+            if (!widgetMesh || !widgetMesh->IsValid()) continue;
 
             CMaterial* widgetMaterial = widgetMesh->Material.get();
             if (!widgetMaterial || !widgetMaterial->IsValid()) {
@@ -674,7 +676,11 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
 void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     SUniformBufferObject ubo{};
 
-    const STransform camTransform = ActiveCamera->Transform;
+    ACamera* Camera = ActiveCamera;
+    if (!ActiveCamera) {
+        Camera = new ACamera();
+    }
+    const STransform camTransform = Camera->Transform;
 
     // Flip Y for Left-Handed coordinate system (Y=Right)
     SVector eye = camTransform.Position;
@@ -686,8 +692,8 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     ubo.view = ubo.view * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f));
 
     ubo.proj = glm::perspective(
-        glm::radians(ActiveCamera->FOV / 2), swapChainExtent.width / (float)swapChainExtent.height,
-        ActiveCamera->NearClip, ActiveCamera->FarClip
+        glm::radians(Camera->FOV / 2), swapChainExtent.width / (float)swapChainExtent.height, Camera->NearClip,
+        Camera->FarClip
     );
     ubo.proj[1][1] *= -1;
 
@@ -696,6 +702,10 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     ubo.time = (float)glfwGetTime();
 
     memcpy(uniformBuffersMapped[frameIndex], &ubo, sizeof(ubo));
+
+    if (!ActiveCamera) {
+        delete Camera;
+    }
 }
 
 void CRenderer::CreateSyncObjects() {
@@ -750,6 +760,17 @@ void CRenderer::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
+
+void CRenderer::RemoveUIWidget(const WWidget* Widget) {
+    for (auto it = UIWidgets.begin(); it != UIWidgets.end(); ++it) {
+        if (it->get() == Widget) {
+            UIWidgets.erase(it);
+            break;
+        }
+    }
+}
+
+void CRenderer::ClearUIWidgets() { UIWidgets.clear(); }
 
 void CRenderer::CreateBuffer(
     VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -1130,8 +1151,22 @@ void CRenderer::CreateLogicalDevice() {
     vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
+void CRenderer::EnqueueForDeletion(std::function<void()>&& func) {
+    if (DeletionQueues.size() > currentFrame) {
+        uint32 frameIndex = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        DeletionQueues[frameIndex].emplace_back(std::move(func));
+    }
+}
+
 void CRenderer::DrawFrame() {
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+    if (currentFrame < DeletionQueues.size()) {
+        for (auto& func : DeletionQueues[currentFrame]) {
+            func();
+        }
+        DeletionQueues[currentFrame].clear();
+    }
 
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(
@@ -1206,6 +1241,16 @@ void CRenderer::Cleanup() {
     DefaultMaterial.reset();
     DefaultWidgetMaterial.reset();
     UIWidgets.clear();
+
+    for (const auto& queue : DeletionQueues) {
+        for (const auto& func : queue) {
+            func();
+        }
+    }
+
+    for (auto& queue : DeletionQueues) {
+        queue.clear();
+    }
 
     CleanupSwapChain();
 

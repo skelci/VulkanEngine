@@ -7,11 +7,17 @@
 
 
 CTexture::~CTexture() {
-    VkDevice device = GEngine->GetRenderer()->GetDevice();
+    CRenderer* Renderer = GEngine->GetRenderer();
+    VkDevice device = Renderer->GetDevice();
 
-    vkDestroyImageView(device, ImageView, nullptr);
-    vkDestroyImage(device, Image, nullptr);
-    vkFreeMemory(device, ImageMemory, nullptr);
+    VkImageView imgView = ImageView;
+    VkImage img = Image;
+    VkDeviceMemory imgMem = ImageMemory;
+    Renderer->EnqueueForDeletion([device, imgView, img, imgMem]() {
+        vkDestroyImageView(device, imgView, nullptr);
+        vkDestroyImage(device, img, nullptr);
+        vkFreeMemory(device, imgMem, nullptr);
+    });
 }
 
 void CTexture::CreateFromBuffer(void* pixels, int texWidth, int texHeight) {

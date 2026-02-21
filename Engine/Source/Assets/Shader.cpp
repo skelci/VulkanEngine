@@ -170,6 +170,10 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     commonSS << "#define lerp(a, b, t) mix(a, b, t)\n";
     commonSS << "#define one_minus(x) (1.0 - x)\n";
 
+    if (ShaderType == "UI") {
+        commonSS << "#define WidgetSize ModelScale.xy\n";
+    }
+
     // --- VERTEX GENERATION ---
     std::stringstream vertSS;
     vertSS << "#version 450\n\n";
@@ -208,8 +212,8 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "layout(push_constant) uniform PushConstants {\n";
     vertSS << "    mat4 model;\n";
     vertSS << "} push;\n\n";
-    vertSS << "layout(location = 0) in vec3 inPosition;\n";
-    vertSS << "layout(location = 1) in vec3 inColor;\n";
+    vertSS << "layout(location = 0) in vec3 VertRP;\n";
+    vertSS << "layout(location = 1) in vec3 VertColor;\n";
     vertSS << "layout(location = 2) in vec2 inTexCoord;\n";
     vertSS << "layout(location = 3) in vec3 inNormal;\n\n";
     vertSS << "layout(location = 0) out vec3 fragColor;\n";
@@ -229,22 +233,22 @@ void CShader::LoadFromFile(const std::string& FilePath) {
 
     // Inject default if missing
     if (userCode.find("GetWPO") == std::string::npos) {
-        vertSS << "vec3 GetWPO(vec3 pos) { return vec3(0.0); }\n\n";
+        vertSS << "vec3 GetWPO() { return vec3(0.0); }\n\n";
     }
 
     vertSS << "void main() {\n";
-    vertSS << "    FragWP = vec3(push.model * vec4(inPosition, 1.0));\n";
+    vertSS << "    FragWP = vec3(push.model * vec4(VertRP, 1.0));\n";
     vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
     vertSS << "    CameraWP = camera.view[3].xyz;\n";
     vertSS
         << "    ModelScale = vec3(length(push.model[0].xyz), length(push.model[1].xyz), length(push.model[2].xyz));\n";
-    vertSS << "    vec3 offset = GetWPO(inPosition);\n";
+    vertSS << "    vec3 offset = GetWPO();\n";
     if (ShaderType == "UI") {
-        vertSS << "    gl_Position = camera.ortho * push.model * vec4(inPosition + offset, 1.0);\n";
+        vertSS << "    gl_Position = camera.ortho * push.model * vec4(VertRP + offset, 1.0);\n";
     } else {
-        vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(inPosition + offset, 1.0);\n";
+        vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(VertRP + offset, 1.0);\n";
     }
-    vertSS << "    fragColor = inColor;\n";
+    vertSS << "    fragColor = VertColor;\n";
     vertSS << "    fragTexCoord = inTexCoord;\n";
     vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
     vertSS << "    fragNormal = normalize(normalMatrix * inNormal);\n";
@@ -287,10 +291,6 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     fragSS << "layout(location = 6) in vec3 ModelScale;\n";
     fragSS << "layout(location = 7) in float Time;\n\n";
     fragSS << "layout(location = 0) out vec4 outColor;\n\n";
-
-    if (ShaderType == "UI") {
-        fragSS << "#define WidgetSize ModelScale.xy\n";
-    }
 
     // Inject user code
     fragSS << "#define FRAGMENT\n";

@@ -67,6 +67,12 @@ CInputManager::CInputManager() {
     glfwSetCursorPosCallback(GEngine->GetWindow(), [](GLFWwindow*, double x, double y) {
         CInputManager::OnCursor(SVector2(x, y));
     });
+    glfwSetCharCallback(GEngine->GetWindow(), [](GLFWwindow*, unsigned int codepoint) {
+        CInputManager::OnChar(codepoint);
+    });
+    glfwSetKeyCallback(GEngine->GetWindow(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        CInputManager::OnKey(key, scancode, action, mods);
+    });
 
     SetInputMode(true);
 }
@@ -81,11 +87,18 @@ void CInputManager::Tick(float DeltaTime) {
     );
 
     for (const auto& context : MappingContexts) {
-        for (const auto& [key, action] : context->GetMappings()) {
-            switch (action.ValueType) {
-            case EInputValueType::Digital: ProcessDigitalInput(key, action); break;
-            case EInputValueType::Axis1D: ProcessAxis1DInput(key, action); break;
-            case EInputValueType::Axis2D: ProcessAxis2DInput(key, action); break;
+        for (const auto& [key, actions] : context->GetMappings()) {
+            for (int32 i = actions.size() - 1; i >= 0; i--) {
+                const auto& action = actions[i];
+                if (!action.IsValid()) {
+                    context->RemoveMapping(key);
+                    continue;
+                }
+                switch (action.ValueType) {
+                case EInputValueType::Digital: ProcessDigitalInput(key, action); break;
+                case EInputValueType::Axis1D: ProcessAxis1DInput(key, action); break;
+                case EInputValueType::Axis2D: ProcessAxis2DInput(key, action); break;
+                }
             }
         }
     }
@@ -111,15 +124,21 @@ void CInputManager::RemoveMappingContext(SInputMappingContext* Context) {
     );
 }
 
-void CInputManager::SetInputMode(bool bCursorVisible) {
-    glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, bCursorVisible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+void CInputManager::SetInputMode(bool CursorVisible) {
+    glfwSetInputMode(GEngine->GetWindow(), GLFW_CURSOR, CursorVisible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
 void CInputManager::ProcessDigitalInput(EKeys Key, SInputAction Action) {
     auto callback = std::get<FDigitalAction>(Action.Callback);
     assert(callback && "Digital action callback is not set");
 
-    int newState = glfwGetKey(GEngine->GetWindow(), KeyToGLFWCode.at(Key));
+    int newState = 0;
+    if (Key == EKeys::MouseLeft || Key == EKeys::MouseRight || Key == EKeys::MouseMiddle) {
+        newState = glfwGetMouseButton(GEngine->GetWindow(), KeyToGLFWCode.at(Key));
+    } else {
+        newState = glfwGetKey(GEngine->GetWindow(), KeyToGLFWCode.at(Key));
+    }
+
     EInputEvent state = EInputEvent::None;
     if (newState && !PreviousFrameDigitalKeys.contains(Key)) {
         state = EInputEvent::Pressed;
@@ -164,6 +183,24 @@ void CInputManager::OnScroll(float delta) { GInputManager->ScrollDelta = delta; 
 
 void CInputManager::OnCursor(SVector2 delta) { GInputManager->CursorPosition = delta; }
 
-void SInputMappingContext::AddMapping(EKeys Key, const SInputAction& Action) { KeyMappings[Key] = Action; }
+void CInputManager::OnChar(unsigned int codepoint) {
+    if (codepoint < 128) {
+        GInputManager->OnCharInput.Broadcast(static_cast<char>(codepoint));
+    }
+}
+
+void CInputManager::OnKey(int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (key == GLFW_KEY_BACKSPACE) {
+            OnChar(8);
+        } else if (key == GLFW_KEY_ENTER) {
+            OnChar(10);
+        } else if (key == GLFW_KEY_DELETE) {
+            OnChar(127);
+        }
+    }
+}
+
+void SInputMappingContext::AddMapping(EKeys Key, const SInputAction& Action) { KeyMappings[Key].push_back(Action); }
 
 void SInputMappingContext::RemoveMapping(EKeys Key) { KeyMappings.erase(Key); }

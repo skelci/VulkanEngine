@@ -16,6 +16,11 @@ public:
         Callbacks.emplace_back(std::make_unique<MemberBinding<T>>(instance, method));
     }
 
+    template <typename Func>
+    void Bind(Func&& f) {
+        Callbacks.emplace_back(std::make_unique<LambdaBinding<std::decay_t<Func>>>(std::forward<Func>(f)));
+    }
+
     void Unbind(void (*fn)(Args...)) {
         RemoveIf([fn](const BindingPtr& b) { return b->Matches(nullptr, &fn); });
     }
@@ -64,6 +69,15 @@ private:
         }
         T* Instance;
         Method MethodPtr;
+    };
+
+    template <typename Func>
+    struct LambdaBinding final : IBinding {
+        Func Fn;
+        explicit LambdaBinding(Func fn) : Fn(std::move(fn)) {}
+        void Invoke(Args... args) override { Fn(args...); }
+        // Lambdas cannot be easily compared for equality, so they don't support targeted Unbind
+        bool Matches(void* instance, const void* methodPtr) const override { return false; }
     };
 
     using BindingPtr = std::unique_ptr<IBinding>;

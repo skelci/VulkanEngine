@@ -32,6 +32,8 @@ public:
     CMesh(CMesh&& other) noexcept;
     CMesh& operator=(CMesh&& other) noexcept;
 
+    bool IsValid() const { return !Vertices.empty() && !Indices.empty(); }
+
     const std::vector<SVertex>& GetVertices() const { return Vertices; }
     const std::vector<uint32_t>& GetIndices() const { return Indices; }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Assets/Material.hpp"
 #include "Widget.hpp"
 
 #include <memory>

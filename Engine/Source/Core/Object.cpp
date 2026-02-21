@@ -1,6 +1,10 @@
 #include "Object.hpp"
 
 
+CObject::CObject() : ValidityToken(std::make_shared<bool>(true)) {}
+
+CObject::~CObject() {}
+
 bool CClass::IsChildOf(const CClass* Other) const {
     const CClass* Current = this;
     while (Current) {

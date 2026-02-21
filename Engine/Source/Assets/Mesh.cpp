@@ -138,24 +138,30 @@ void CMesh::SetData(const std::vector<SVertex>& InVertices, const std::vector<ui
 }
 
 void CMesh::Cleanup() {
-    VkDevice device = GEngine->GetRenderer()->GetDevice();
+    CRenderer* Renderer = GEngine->GetRenderer();
+    VkDevice device = Renderer->GetDevice();
 
     if (VertexBuffer != VK_NULL_HANDLE) {
-        vkDestroyBuffer(device, VertexBuffer, nullptr);
+        VkBuffer buf = VertexBuffer;
+        VkDeviceMemory mem = VertexBufferMemory;
+        Renderer->EnqueueForDeletion([device, buf, mem]() {
+            vkDestroyBuffer(device, buf, nullptr);
+            vkFreeMemory(device, mem, nullptr);
+        });
         VertexBuffer = VK_NULL_HANDLE;
     }
-    if (VertexBufferMemory != VK_NULL_HANDLE) {
-        vkFreeMemory(device, VertexBufferMemory, nullptr);
-        VertexBufferMemory = VK_NULL_HANDLE;
-    }
+    VertexBufferMemory = VK_NULL_HANDLE;
+
     if (IndexBuffer != VK_NULL_HANDLE) {
-        vkDestroyBuffer(device, IndexBuffer, nullptr);
+        VkBuffer buf = IndexBuffer;
+        VkDeviceMemory mem = IndexBufferMemory;
+        Renderer->EnqueueForDeletion([device, buf, mem]() {
+            vkDestroyBuffer(device, buf, nullptr);
+            vkFreeMemory(device, mem, nullptr);
+        });
         IndexBuffer = VK_NULL_HANDLE;
     }
-    if (IndexBufferMemory != VK_NULL_HANDLE) {
-        vkFreeMemory(device, IndexBufferMemory, nullptr);
-        IndexBufferMemory = VK_NULL_HANDLE;
-    }
+    IndexBufferMemory = VK_NULL_HANDLE;
 }
 
 void CMesh::InitRenderResources() {

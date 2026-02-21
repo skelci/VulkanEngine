@@ -1,11 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.hpp"
-#include "World.hpp"
 
 
-class CTestWorld : public CWorld {
-    CLASS_BODY(CTestWorld, CWorld)
+class CGameMap : public CWorld {
+    CLASS_BODY(CGameMap, CWorld)
 
 protected:
     virtual void BeginPlay() override;
@@ -16,7 +15,7 @@ public:
 private:
     class ACamera* Camera;
 
-    SVector InputVector = SVector(0);
+    SVector InputVector;
     float FlySpeed = 1;
 
     void OnEscapePressed();

@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -59,6 +60,9 @@ public:
         return ptr;
     }
 
+    void RemoveUIWidget(const WWidget* Widget);
+    void ClearUIWidgets();
+
     // Handles buffer creation with staging buffer internally
     template <typename T>
     void CreateBuffer(
@@ -89,6 +93,8 @@ public:
     VkDescriptorPool GetDescriptorPool() const { return descriptorPool; }
 
     void WaitForIdle() { vkDeviceWaitIdle(device); }
+
+    void EnqueueForDeletion(std::function<void()>&& func);
 
 private:
     static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
@@ -161,7 +167,7 @@ private:
         VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator
     );
 
-    ACamera* ActiveCamera;
+    ACamera* ActiveCamera = nullptr;
 
     GLFWwindow* window;
     VkInstance instance;
@@ -241,6 +247,7 @@ public:
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
+    std::vector<std::vector<std::function<void()>>> DeletionQueues;
     const uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
     const std::vector<const char*> validationLayers = {

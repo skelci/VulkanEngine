@@ -50,6 +50,8 @@ void WText::RebuildMesh() {
     float x = 0.0f;
     float y = FontSize * 0.5f;
 
+    const float Scale = FontSize / Font->Size;
+
     for (char c : Text) {
         if (c < 32 || c >= 128) continue; // Skip unsupported chars
 
@@ -65,27 +67,16 @@ void WText::RebuildMesh() {
         indices.push_back(vCount + 2);
 
         // Vert 0: Top-Left
-        vertices.push_back({{q.x0, q.y0, 0.0f}, {1, 1, 1}, {q.s0, q.t0}, {0, 0, 1}});
+        vertices.push_back({{q.x0 * Scale, q.y0 * Scale, 0.0f}, {1, 1, 1}, {q.s0, q.t0}, {0, 0, 1}});
         // Vert 1: Bottom-Left
-        vertices.push_back({{q.x0, q.y1, 0.0f}, {1, 1, 1}, {q.s0, q.t1}, {0, 0, 1}});
+        vertices.push_back({{q.x0 * Scale, q.y1 * Scale, 0.0f}, {1, 1, 1}, {q.s0, q.t1}, {0, 0, 1}});
         // Vert 2: Bottom-Right
-        vertices.push_back({{q.x1, q.y1, 0.0f}, {1, 1, 1}, {q.s1, q.t1}, {0, 0, 1}});
+        vertices.push_back({{q.x1 * Scale, q.y1 * Scale, 0.0f}, {1, 1, 1}, {q.s1, q.t1}, {0, 0, 1}});
         // Vert 3: Top-Right
-        vertices.push_back({{q.x1, q.y0, 0.0f}, {1, 1, 1}, {q.s1, q.t0}, {0, 0, 1}});
+        vertices.push_back({{q.x1 * Scale, q.y0 * Scale, 0.0f}, {1, 1, 1}, {q.s1, q.t0}, {0, 0, 1}});
     }
 
-    CachedTextWidth = x * FontSize / Font->Size;
-
-    const SVector2 Size = GetDesiredSize();
-    const float Scale = FontSize / Font->Size;
-    const float yScale = Scale / Size.Y;
-    const float xScale = Scale / Size.X;
-
-    for (auto& vert : vertices) {
-        vert.Position.x *= xScale;
-        vert.Position.x -= 0.5f; // Center to pivot
-        vert.Position.y *= yScale;
-    }
+    CachedTextWidth = x * Scale;
 
     Mesh->SetData(vertices, indices);
 }
