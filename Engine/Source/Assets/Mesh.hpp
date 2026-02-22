@@ -20,6 +20,8 @@ struct SVertex {
 };
 
 class CMesh : public CAssetBase {
+    CLASS_BODY(CMesh, CAssetBase)
+
 protected:
     void LoadFromFile(const std::string& FilePath) override;
 

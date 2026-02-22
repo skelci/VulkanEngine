@@ -98,7 +98,7 @@ void CTexture::LoadFromFile(const std::string& FilePath) {
 
     if (!pixels) {
         Log("Texture", ELogLevel::Error, "Failed to load texture image: " + FilePath);
-        throw std::runtime_error("failed to load texture image!");
+        return;
     }
 
     CreateFromBuffer(pixels, texWidth, texHeight);

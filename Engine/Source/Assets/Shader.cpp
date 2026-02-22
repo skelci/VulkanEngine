@@ -103,17 +103,6 @@ void CShader::LoadFromFile(const std::string& FilePath) {
             }
 
             if (!defaultValueStr.empty()) {
-                // If user used '=', remove it
-                if (defaultValueStr[0] == '=') {
-                    defaultValueStr = defaultValueStr.substr(1);
-                    // Trim again after removing '='
-                    first = defaultValueStr.find_first_not_of(" \t");
-                    if (std::string::npos != first) {
-                        size_t last = defaultValueStr.find_last_not_of(" \t");
-                        defaultValueStr = defaultValueStr.substr(first, last - first + 1);
-                    }
-                }
-
                 DefaultValues[name] = defaultValueStr;
             }
 
@@ -136,9 +125,10 @@ void CShader::LoadFromFile(const std::string& FilePath) {
                 prop.Type = EShaderPropertyType::Vec3;
                 // std140 vec3 alignment is 16 bytes
                 if (uboOffset % 16 != 0) uboOffset += (16 - (uboOffset % 16));
-                prop.Size = 12; // vec3 is 12 bytes but aligned to 16
+                prop.Size = 12;
                 prop.Offset = uboOffset;
-                uboOffset += 16;
+                uboOffset += 12;
+
             } else if (typeStr == "vec4") {
                 prop.Type = EShaderPropertyType::Vec4;
                 if (uboOffset % 16 != 0) uboOffset += (16 - (uboOffset % 16));
@@ -182,6 +172,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "    mat4 view;\n";
     vertSS << "    mat4 proj;\n";
     vertSS << "    mat4 ortho;\n";
+    vertSS << "    vec4 position;\n";
     vertSS << "    float time;\n";
     vertSS << "} camera;\n";
     vertSS << "#define Time camera.time\n\n";
@@ -217,7 +208,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     vertSS << "layout(location = 2) in vec2 inTexCoord;\n";
     vertSS << "layout(location = 3) in vec3 inNormal;\n\n";
     vertSS << "layout(location = 0) out vec3 fragColor;\n";
-    vertSS << "layout(location = 1) out vec2 fragTexCoord;\n";
+    vertSS << "layout(location = 1) out vec2 UV;\n";
     vertSS << "layout(location = 2) out vec3 fragNormal;\n";
     vertSS << "layout(location = 3) out vec3 ModelWP;\n";
     vertSS << "layout(location = 4) out vec3 FragWP;\n";
@@ -237,9 +228,10 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     }
 
     vertSS << "void main() {\n";
+    vertSS << "    UV = inTexCoord;\n";
     vertSS << "    FragWP = vec3(push.model * vec4(VertRP, 1.0));\n";
     vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
-    vertSS << "    CameraWP = camera.view[3].xyz;\n";
+    vertSS << "    CameraWP = camera.position.xyz;\n";
     vertSS
         << "    ModelScale = vec3(length(push.model[0].xyz), length(push.model[1].xyz), length(push.model[2].xyz));\n";
     vertSS << "    vec3 offset = GetWPO();\n";
@@ -249,7 +241,6 @@ void CShader::LoadFromFile(const std::string& FilePath) {
         vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(VertRP + offset, 1.0);\n";
     }
     vertSS << "    fragColor = VertColor;\n";
-    vertSS << "    fragTexCoord = inTexCoord;\n";
     vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
     vertSS << "    fragNormal = normalize(normalMatrix * inNormal);\n";
     vertSS << "    outTime = Time;\n";
@@ -299,7 +290,7 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     fragSS << "// User Code End\n\n";
 
     if (userCode.find("GetColor") == std::string::npos) {
-        fragSS << "vec4 GetColor() { return vec4(fragColor, 1.0); }\n\n";
+        fragSS << "vec4 GetColor() { return vec4(FragColor, 1.0); }\n\n";
     }
 
     fragSS << "void main() {\n";
@@ -330,8 +321,8 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     std::string vertSpv = (saveDir / vertSpvName).string();
     std::string fragSpv = (saveDir / fragSpvName).string();
 
-    std::string cmdVert = "glslc " + vertPath + " -o " + vertSpv;
-    std::string cmdFrag = "glslc " + fragPath + " -o " + fragSpv;
+    std::string cmdVert = "glslc -I. " + vertPath + " -o " + vertSpv;
+    std::string cmdFrag = "glslc -I. " + fragPath + " -o " + fragSpv;
 
     int retVert = std::system(cmdVert.c_str());
     if (retVert != 0) {

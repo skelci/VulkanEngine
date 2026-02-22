@@ -1,26 +1,28 @@
 #ifdef FRAGMENT
 // Property texture Texture Engine/Textures/White.png
-// Property vec3 LightColor 1 1 1
-// Property vec3 LightDirection -0.5 -1 -0.5
 // Property vec4 Color 1 1 1 1
+// Property float Translucent 1
+// Property vec2 UVScale 1 1
+// Property vec3 LightColor 1 1 1
+// Property vec3 LightDirection -0.5 -0.5 -1
+// Property vec3 AmbientLight 0.2 0.2 0.2
 // Property float Roughness 0.5
+// Property texture RoughnessMap Engine/Textures/White.png
+
+#include "Engine/Content/Shaders/Functions/Shade.glsl"
 
 vec4 GetColor() {
-    vec3 lightDir = -normalize(mat.LightDirection);
-    vec3 viewDir = normalize(CameraWP - FragWP);
-
-    // Blinn-Phong Specular
-    vec3 halfDir = normalize(lightDir + viewDir);
-    float specAngle = max(dot(Normal, halfDir), 0.0);
-    float shine = one_minus(mat.Roughness) * 128.0;
-    float specular = pow(specAngle, shine);
-    float specularFactor = specular * one_minus(mat.Roughness);
-
-    float diff = max(dot(Normal, lightDir), 0.1);
+    vec4 texColor = texture(Texture, UV * mat.UVScale) * mat.Color;
+    vec3 shadedColor = Shade(
+        texColor.rgb,
+        normalize(mat.LightDirection),
+        mat.LightColor,
+        mat.AmbientLight,
+        Normal,
+        mat.Roughness * texture(RoughnessMap, UV * mat.UVScale).r
+    );
     
-    vec4 texColor = texture(Texture, UV) * mat.Color;
-    vec3 diffuseComponent = diff * texColor.rgb * mat.LightColor;
-    vec3 specularComponent = specularFactor * mat.LightColor;
-    return vec4(diffuseComponent + specularComponent, texColor.a);
+    float alpha = (mat.Translucent > 0.5) ? texColor.a : 1.0;
+    return vec4(shadedColor, alpha);
 }
 #endif

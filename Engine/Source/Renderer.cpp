@@ -699,6 +699,8 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
 
     ubo.ortho = glm::ortho(0.0f, (float)swapChainExtent.width, 0.0f, (float)swapChainExtent.height, -1.0f, 1.0f);
 
+    ubo.position = glm::vec4(camTransform.Position.ToGLMVec3(), 1.0f);
+
     ubo.time = (float)glfwGetTime();
 
     memcpy(uniformBuffersMapped[frameIndex], &ubo, sizeof(ubo));

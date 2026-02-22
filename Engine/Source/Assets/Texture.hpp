@@ -6,6 +6,8 @@
 
 
 class CTexture : public CAssetBase {
+    CLASS_BODY(CTexture, CAssetBase)
+
 public:
     ~CTexture();
 
@@ -13,6 +15,8 @@ public:
     VkImageView GetImageView() const { return ImageView; }
 
     void CreateFromBuffer(void* pixels, int texWidth, int texHeight);
+
+    bool IsValid() const { return ImageView != VK_NULL_HANDLE; }
 
 protected:
     void LoadFromFile(const std::string& FilePath) override;

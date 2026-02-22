@@ -23,6 +23,8 @@ struct SShaderProperty {
 };
 
 class CShader : public CAssetBase {
+    CLASS_BODY(CShader, CAssetBase)
+
 public:
     ~CShader();
 

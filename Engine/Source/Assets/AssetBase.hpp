@@ -1,11 +1,14 @@
 #pragma once
 
+#include "Object.hpp"
+
 #include <string>
 
 
-class CAssetBase {
-    friend class CAssetManager;
+class CAssetBase : public CObject {
+    CLASS_BODY(CAssetBase, CObject)
 
 protected:
-    virtual void LoadFromFile(const std::string& FilePath) = 0;
+    friend class CAssetManager;
+    virtual void LoadFromFile(const std::string& FilePath) {}
 };

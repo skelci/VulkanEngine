@@ -247,35 +247,41 @@ void CMaterial::UpdateBuffer() {
 
     size_t texCount = 0;
     for (const auto& prop : Shader->GetProperties()) {
-        if (prop.Type == EShaderPropertyType::Texture) texCount++;
+        if (prop.Type == EShaderPropertyType::Texture) {
+            texCount++;
+        }
     }
     imageInfos.reserve(texCount);
 
     for (const auto& prop : Shader->GetProperties()) {
-        if (prop.Type == EShaderPropertyType::Texture) {
-            if (Properties.find(prop.Name) != Properties.end()) {
-                auto tex = std::get<std::shared_ptr<CTexture>>(Properties[prop.Name]);
-                if (tex) {
-                    VkDescriptorImageInfo imageInfo{};
-                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    imageInfo.imageView = tex->GetImageView();
-                    imageInfo.sampler = renderer->GetTextureSampler();
+        if (prop.Type != EShaderPropertyType::Texture) continue;
 
-                    imageInfos.push_back(imageInfo);
-
-                    VkWriteDescriptorSet descriptorWrite{};
-                    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    descriptorWrite.dstSet = DescriptorSet;
-                    descriptorWrite.dstBinding = prop.Binding;
-                    descriptorWrite.dstArrayElement = 0;
-                    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    descriptorWrite.descriptorCount = 1;
-                    descriptorWrite.pImageInfo = &imageInfos.back();
-
-                    descriptorWrites.push_back(descriptorWrite);
-                }
-            }
+        std::shared_ptr<CTexture> tex = nullptr;
+        if (Properties.find(prop.Name) != Properties.end()) {
+            tex = std::get<std::shared_ptr<CTexture>>(Properties[prop.Name]);
         }
+
+        if (!tex || !tex->IsValid()) {
+            tex = renderer->GetDefaultTexture();
+        }
+
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = tex->GetImageView();
+        imageInfo.sampler = renderer->GetTextureSampler();
+
+        imageInfos.push_back(imageInfo);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = DescriptorSet;
+        descriptorWrite.dstBinding = prop.Binding;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = &imageInfos.back();
+
+        descriptorWrites.push_back(descriptorWrite);
     }
 
     if (!descriptorWrites.empty()) {
@@ -311,7 +317,7 @@ void CMaterial::CreateDescriptorSet() {
             samplerLayoutBinding.descriptorCount = 1;
             samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             samplerLayoutBinding.pImmutableSamplers = nullptr;
-            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
             bindings.push_back(samplerLayoutBinding);
         }
     }

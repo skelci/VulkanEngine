@@ -1,0 +1,4 @@
+Shader: Engine/Shaders/SimpleShading.glsl
+Texture: Game/Textures/Sand.jpg
+UVScale: 50 50
+Roughness: 0.85

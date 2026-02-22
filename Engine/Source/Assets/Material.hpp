@@ -18,6 +18,8 @@ struct SShaderProperty;
 
 
 class CMaterial : public CAssetBase {
+    CLASS_BODY(CMaterial, CAssetBase)
+
 public:
     ~CMaterial();
 

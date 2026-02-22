@@ -10,6 +10,8 @@
 
 
 class CFont : public CAssetBase {
+    CLASS_BODY(CFont, CAssetBase)
+
 public:
     std::shared_ptr<CTexture> Texture;
     stbtt_bakedchar CData[96]; // ASCII 32..126 is 95 glyphs

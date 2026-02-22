@@ -1,8 +1,7 @@
 #include "GameMap.hpp"
 
-#include "VikingRoom.hpp"
-
 #include "Actors/Camera.hpp"
+#include "Actors/MeshActor.hpp"
 #include "Assets/Material.hpp"
 #include "Assets/Model.hpp"
 
@@ -46,18 +45,22 @@ void CGameMap::BeginPlay() {
     Camera->Transform.Position = SVector(0, 0, 5);
     GEngine->GetRenderer()->SetActiveCamera(Camera);
 
-    for (int32 i = 0; i < 100; i++) {
-        AVikingRoom* actor = SpawnActor<AVikingRoom>();
-        actor->Transform.Position = SVector((i % 10) * 3.0, (i / 10) * 3.0, 0);
-    }
+    AMeshActor* Water = SpawnActor<AMeshActor>();
+    Water->Model = GetAsset<CModel>("Game/Meshes/HighResPlane.fbx");
+    Water->Model->SetMaterial(GetAsset<CMaterial>("Game/Materials/Water.mat"));
+    Water->Transform.Scale = SVector(1000, 1000, 1);
+
+    AMeshActor* Sand = SpawnActor<AMeshActor>();
+    Sand->Model = GetAsset<CModel>("Game/Meshes/Island.fbx");
+    Sand->Model->SetMaterial(GetAsset<CMaterial>("Game/Materials/Sand.mat"));
+    Sand->Transform.Scale = SVector(100, 100, 100);
+    Sand->Transform.Position = SVector(0.0f, 0.0f, -1.5f);
 
     Character = SpawnActor<AMeshActor>();
-    Character->Model = GetAsset<CModel>("Game/Character/character.obj");
-    std::shared_ptr<CMaterial> mat = GetAsset<CMaterial>("Engine/Materials/SimpleShading.mat");
-    mat->SetProperty("LightColor", SVector(1.5));
-    Character->Model->SetMaterial(mat);
-    Character->Transform.Position = SVector(-3, 0, 0);
-    Character->Transform.Rotation = SRotator(0, 0, 90);
+    Character->Model = GetAsset<CModel>("Game/Character/burnice.fbx");
+    Character->Model->SetMaterialProperty("LightColor", SVector3(1.5f, 1.5f, 1.5f));
+    Character->Model->SetMaterialProperty("AmbientLight", SVector3(0.5f));
+    Character->Transform.Position = SVector(0, 0, 10);
 }
 
 void CGameMap::Tick(float DeltaTime) {
