@@ -108,6 +108,10 @@ std::string SVector2::ToString() const { return "SVector2(" + std::to_string(X) 
 
 // ====== SVector ======
 
+bool SVector::operator==(const SVector& Other) const { return X == Other.X && Y == Other.Y && Z == Other.Z; }
+
+bool SVector::operator!=(const SVector& Other) const { return !(*this == Other); }
+
 SVector SVector::operator+(const SVector& Other) const { return SVector(X + Other.X, Y + Other.Y, Z + Other.Z); }
 
 SVector SVector::operator+(double Scalar) const { return SVector(X + Scalar, Y + Scalar, Z + Scalar); }
@@ -115,6 +119,8 @@ SVector SVector::operator+(double Scalar) const { return SVector(X + Scalar, Y +
 SVector SVector::operator-(const SVector& Other) const { return SVector(X - Other.X, Y - Other.Y, Z - Other.Z); }
 
 SVector SVector::operator-(double Scalar) const { return SVector(X - Scalar, Y - Scalar, Z - Scalar); }
+
+SVector SVector::operator-() const { return SVector(-X, -Y, -Z); }
 
 SVector SVector::operator*(const SVector& Other) const { return SVector(X * Other.X, Y * Other.Y, Z * Other.Z); }
 

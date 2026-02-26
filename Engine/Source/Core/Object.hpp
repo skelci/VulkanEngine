@@ -91,6 +91,14 @@ T* Cast(CObject* Object) {
     return nullptr;
 }
 
+template <typename T>
+const T* Cast(const CObject* Object) {
+    if (Object && Object->IsA<T>()) {
+        return static_cast<const T*>(Object);
+    }
+    return nullptr;
+}
+
 
 #define CLASS_BODY(Class, BaseClass)                                                                                   \
 public:                                                                                                                \

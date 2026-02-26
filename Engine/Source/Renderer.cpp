@@ -559,9 +559,8 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[frameIndex], 0, nullptr
     );
 
-    for (const auto& actor : GEngine->GetWorld()->GetActors()) {
-        auto MeshActor = dynamic_cast<AMeshActor*>(actor.get());
-        if (!MeshActor || !MeshActor->Model) continue;
+    for (const auto& MeshActor : GEngine->GetWorld()->GetActors<AMeshActor>()) {
+        if (!MeshActor->IsVisible || !MeshActor->Model) continue;
 
         for (const auto& Mesh : MeshActor->Model->Meshes) {
             VkBuffer vertexBuffers[] = {Mesh.GetVertexBuffer()};
@@ -589,7 +588,7 @@ void CRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imag
                 );
             }
 
-            const STransform& transform = MeshActor->Transform;
+            const STransform transform = MeshActor->GetWorldTransform();
             glm::mat4 modelMatrix = glm::mat4_cast(glm::quat(transform.Rotation.AsRadians().ToEuler().ToGLMVec3()));
             const SVector& scale = transform.Scale;
             modelMatrix[0] *= scale.X;
@@ -680,7 +679,7 @@ void CRenderer::UpdateUniformBuffer(uint32_t frameIndex) {
     if (!ActiveCamera) {
         Camera = new ACamera();
     }
-    const STransform camTransform = Camera->Transform;
+    const STransform camTransform = Camera->GetWorldTransform();
 
     // Flip Y for Left-Handed coordinate system (Y=Right)
     SVector eye = camTransform.Position;
@@ -1093,7 +1092,7 @@ int CRenderer::RateDeviceSuitability(VkPhysicalDevice device) {
 
     // Application can't function without geometry shaders
     if (!deviceFeatures.geometryShader || !FindQueueFamilies(device).IsComplete() || !extensionsSupported ||
-        !swapChainAdequate || !supportedFeatures.samplerAnisotropy)
+        !swapChainAdequate || !supportedFeatures.samplerAnisotropy || !deviceFeatures.fillModeNonSolid)
         return 0;
 
     int score = 0;
@@ -1129,6 +1128,7 @@ void CRenderer::CreateLogicalDevice() {
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.sampleRateShading = VK_TRUE;
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.fillModeNonSolid = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

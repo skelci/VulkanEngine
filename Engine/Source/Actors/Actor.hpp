@@ -4,6 +4,8 @@
 #include "Rotator.hpp"
 #include "Vector.hpp"
 
+class CWorld;
+
 
 struct STransform {
     SVector Position = SVector(0);
@@ -16,6 +18,18 @@ class AActor : public CObject {
     CLASS_BODY(AActor, CObject)
 
 public:
-    virtual ~AActor();
+    virtual void Tick(float DeltaTime) {}
+
     STransform Transform;
+    STransform GetWorldTransform() const;
+
+    AActor* Parent = nullptr;
+    AActor* SpawnChildActor(const TSubclassOf<AActor>& ActorClass);
+
+    template <typename T>
+    T* SpawnChildActor(const TSubclassOf<AActor>& ActorClass) {
+        return Cast<T>(SpawnChildActor(ActorClass));
+    }
+
+    CWorld* GetWorld() const;
 };

@@ -58,8 +58,10 @@ void CEngine::MainLoop() {
     }
 
     const auto now = std::chrono::steady_clock::now();
-    const float deltaTime = std::chrono::duration<float>(now - previousFrameTime).count();
+    float deltaTime = std::chrono::duration<float>(now - previousFrameTime).count();
     previousFrameTime = now;
+
+    deltaTime *= SimulationSpeed;
 
     GInputManager->Tick(deltaTime);
 

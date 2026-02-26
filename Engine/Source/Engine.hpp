@@ -38,4 +38,6 @@ public:
 
     CWorld* GetWorld() const { return World.get(); }
     void OpenWorld(const TSubclassOf<CWorld>& WorldClass) { PendingWorldClass = WorldClass; }
+
+    float SimulationSpeed = 1.0f;
 };

@@ -11,5 +11,8 @@ class AMeshActor : public AActor {
     CLASS_BODY(AMeshActor, AActor)
 
 public:
+    AMeshActor();
+
     std::shared_ptr<CModel> Model;
+    bool IsVisible = true;
 };

@@ -475,6 +475,14 @@ void CMaterial::CreatePipeline() {
     rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
     rasterizer.depthBiasEnable = VK_FALSE;
 
+    if (Properties.find("Wireframe") != Properties.end()) {
+        const auto& val = Properties.at("Wireframe");
+        if (std::holds_alternative<float>(val) && std::get<float>(val) > 0.5f) {
+            rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
+            rasterizer.cullMode = VK_CULL_MODE_NONE;
+        }
+    }
+
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;

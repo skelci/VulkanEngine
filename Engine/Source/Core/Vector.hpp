@@ -67,10 +67,14 @@ struct SVector {
     SVector2 XZ() const { return SVector2(X, Z); }
     SVector2 YZ() const { return SVector2(Y, Z); }
 
+    bool operator==(const SVector& Other) const;
+    bool operator!=(const SVector& Other) const;
+
     SVector operator+(const SVector& Other) const;
     SVector operator+(double Scalar) const;
     SVector operator-(const SVector& Other) const;
     SVector operator-(double Scalar) const;
+    SVector operator-() const;
 
     SVector operator*(const SVector& Other) const;
     SVector operator*(double Scalar) const;

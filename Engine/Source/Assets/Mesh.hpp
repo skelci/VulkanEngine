@@ -40,6 +40,7 @@ public:
     const std::vector<uint32_t>& GetIndices() const { return Indices; }
 
     void SetData(const std::vector<SVertex>& InVertices, const std::vector<uint32_t>& InIndices);
+    static CMesh CreateFromData(const std::vector<SVertex>& InVertices, const std::vector<uint32_t>& InIndices);
 
     const VkBuffer& GetVertexBuffer() const { return VertexBuffer; }
     const VkBuffer& GetIndexBuffer() const { return IndexBuffer; }

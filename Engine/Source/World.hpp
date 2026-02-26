@@ -6,6 +6,10 @@
 #include <memory>
 #include <vector>
 
+class APhysicsBody;
+class ABoxCollision;
+class AComplexCollision;
+
 
 class CWorld : public CObject {
     CLASS_BODY(CWorld, CObject)
@@ -17,17 +21,45 @@ protected:
 public:
     virtual void Tick(float DeltaTime);
 
-    template <typename T>
-    T* SpawnActor() {
-        static_assert(std::is_base_of_v<AActor, T>, "T must be derived from AActor");
+    AActor* SpawnActor(const TSubclassOf<AActor>& ActorClass);
 
-        T* NewActor = new T();
-        Actors.push_back(std::unique_ptr<AActor>(NewActor));
-        return NewActor;
+    template <typename T>
+    T* SpawnActor(const TSubclassOf<AActor>& ActorClass) {
+        return Cast<T>(SpawnActor(ActorClass));
     }
+
+    void DestroyActor(AActor* Actor);
 
     const std::vector<std::unique_ptr<AActor>>& GetActors() const { return Actors; }
 
+    template <typename T>
+    std::vector<T*> GetActors() const;
+
+    SVector Gravity = SVector(0, 0, -9.81f);
+
 private:
     std::vector<std::unique_ptr<AActor>> Actors;
+
+protected:
+    void SolveCollisions(float DeltaTime);
+    bool AreBoundingBoxesOverlapping(
+        const SVector& PosA, const SVector& ExtentA, const SVector& PosB, const SVector& ExtentB
+    ) const;
+    bool CheckCollision(const APhysicsBody* A, const APhysicsBody* B, SVector& OutPenetration) const;
+    bool CheckCollisionBoxBox(const ABoxCollision* A, const ABoxCollision* B, SVector& OutPenetration) const;
+    bool CheckCollisionBoxComplex(
+        const ABoxCollision* Box, const AComplexCollision* Complex, SVector& OutPenetration
+    ) const;
 };
+
+
+template <typename T>
+inline std::vector<T*> CWorld::GetActors() const {
+    std::vector<T*> Result;
+    for (const auto& Actor : Actors) {
+        if (T* Casted = Cast<T>(Actor.get())) {
+            Result.push_back(Casted);
+        }
+    }
+    return Result;
+}

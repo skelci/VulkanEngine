@@ -137,6 +137,12 @@ void CMesh::SetData(const std::vector<SVertex>& InVertices, const std::vector<ui
     InitRenderResources();
 }
 
+CMesh CMesh::CreateFromData(const std::vector<SVertex>& InVertices, const std::vector<uint32_t>& InIndices) {
+    CMesh mesh;
+    mesh.SetData(InVertices, InIndices);
+    return mesh;
+}
+
 void CMesh::Cleanup() {
     CRenderer* Renderer = GEngine->GetRenderer();
     VkDevice device = Renderer->GetDevice();
