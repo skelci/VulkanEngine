@@ -2,6 +2,8 @@
 
 #include "Actors/ComplexCollision.hpp"
 #include "Actors/MeshActor.hpp"
+#include "Actors/Trash.hpp"
+#include "Maps/GameMap.hpp"
 
 
 ABoat::ABoat() {
@@ -22,5 +24,11 @@ void ABoat::OnHit(const SHitResult& HitResult, SVector& OutAdjustment) {
         const SVector Move = Transform.Position - CachedPosition;
         OutAdjustment = -Move;
         Velocity = SVector(0);
+    }
+
+    if (Cast<ATrash>(HitResult.OtherActor)) {
+        CGameMap* GameMap = Cast<CGameMap>(GetWorld());
+        GameMap->AddScore();
+        GameMap->DestroyActor(HitResult.OtherActor);
     }
 }

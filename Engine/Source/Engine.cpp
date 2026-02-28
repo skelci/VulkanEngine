@@ -21,6 +21,8 @@ CEngine::CEngine() {
 }
 
 void CEngine::Initialize() {
+    srand(time(nullptr));
+
     ConfigureEngine();
 
     GLog = new CLog();

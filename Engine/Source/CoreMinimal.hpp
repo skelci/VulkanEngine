@@ -5,6 +5,7 @@
 #include "EngineStatics.hpp"
 #include "Math.hpp"
 #include "Object.hpp"
+#include "Random.hpp"
 #include "Rotator.hpp"
 #include "Vector.hpp"
 

@@ -9,7 +9,9 @@ void CWorld::BeginPlay() {}
 
 void CWorld::Tick(float DeltaTime) {
     for (const auto& Actor : Actors) {
-        Actor->Tick(DeltaTime);
+        if (!Actor->IsPendingDestroy) {
+            Actor->Tick(DeltaTime);
+        }
     }
     for (const auto& Actor : GetActors<APhysicsBody>()) {
         if (Actor->SimulatePhysics) {
@@ -17,6 +19,14 @@ void CWorld::Tick(float DeltaTime) {
         }
     }
     SolveCollisions(DeltaTime);
+
+    for (auto it = Actors.begin(); it != Actors.end();) {
+        if ((*it)->IsPendingDestroy) {
+            it = Actors.erase(it);
+        } else {
+            ++it;
+        }
+    }
 }
 
 AActor* CWorld::SpawnActor(const TSubclassOf<AActor>& ActorClass) {
@@ -30,10 +40,13 @@ AActor* CWorld::SpawnActor(const TSubclassOf<AActor>& ActorClass) {
 }
 
 void CWorld::DestroyActor(AActor* Actor) {
-    for (auto it = Actors.begin(); it != Actors.end(); ++it) {
-        if (it->get() == Actor) {
-            Actors.erase(it);
-            return;
+    if (!Actor || Actor->IsPendingDestroy) return;
+
+    Actor->IsPendingDestroy = true;
+
+    for (const auto& A : Actors) {
+        if (A->Parent == Actor) {
+            DestroyActor(A.get());
         }
     }
 }
@@ -123,10 +136,10 @@ bool CWorld::LineTrace(const SVector& Start, const SVector& End, SHitResult& Out
 
 void CWorld::SolveCollisions(float DeltaTime) {
     for (const auto& Actor : GetActors<APhysicsBody>()) {
-        if (!Actor->SimulatePhysics) continue;
+        if (!Actor->SimulatePhysics || Actor->IsPendingDestroy) continue;
         SVector Adjustment;
         for (const auto& Other : GetActors<APhysicsBody>()) {
-            if (Actor == Other) continue;
+            if (Actor == Other || Other->IsPendingDestroy) continue;
 
             SVector Penetration;
             if (CheckCollision(Actor, Other, Penetration)) {

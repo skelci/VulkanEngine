@@ -32,4 +32,8 @@ public:
     }
 
     CWorld* GetWorld() const;
+
+private:
+    friend CWorld;
+    bool IsPendingDestroy = false;
 };

@@ -9,6 +9,9 @@ class CGameMap : public CWorld {
 protected:
     virtual void BeginPlay() override;
 
+public:
+    void AddScore(int32 Amount = 1);
+
 private:
     void OnEscapePressed();
     void SwitchCharacterBoat();
@@ -17,4 +20,7 @@ private:
     class AController* Controller;
     class ACharacter* Player;
     class ABoat* Boat;
+
+    class WPlaytimeUI* PlaytimeUI;
+    int32 Score = 0;
 };

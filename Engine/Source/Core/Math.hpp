@@ -16,6 +16,9 @@ struct SVector;
 const float FLOAT_INF = std::numeric_limits<float>::infinity();
 const double DOUBLE_INF = std::numeric_limits<double>::infinity();
 
+const float FLOAT_MAX = std::numeric_limits<float>::max();
+const double DOUBLE_MAX = std::numeric_limits<double>::max();
+
 float ToRadians(float Degrees);
 float ToDegrees(float Radians);
 

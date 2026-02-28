@@ -3,7 +3,9 @@
 #include "Actors/Boat.hpp"
 #include "Actors/Character.hpp"
 #include "Actors/Controller.hpp"
+#include "Actors/Trash.hpp"
 #include "Actors/WaterCollision.hpp"
+#include "UI/PlaytimeUI.hpp"
 
 #include "Actors/BoxCollision.hpp"
 #include "Actors/ComplexCollision.hpp"
@@ -54,6 +56,29 @@ void CGameMap::BeginPlay() {
     Controller->Parent = Player;
     Controller->RotateTowardsMovement = true;
     Controller->RotationSpeed = 540;
+
+    for (int32 i = 0; i < 20; i++) {
+        const SVector RandomPos = SVector(Random::RandRange(-200.0, 200.0), Random::RandRange(-200.0, 200.0), 0);
+
+        SHitResult HitResult;
+        LineTrace(RandomPos + SVector(0, 0, 20), RandomPos + SVector(0, 0, -5), HitResult);
+        if (!Cast<AWaterCollision>(HitResult.OtherActor)) {
+            i--;
+            continue;
+        }
+
+        ATrash* Trash = SpawnActor<ATrash>(ATrash::StaticClass());
+        Trash->Transform.Position = RandomPos;
+        Trash->Transform.Rotation.Yaw = Random::RandRange(0.0, 360.0);
+        Trash->SetVisibility(true);
+    }
+
+    PlaytimeUI = GEngine->GetRenderer()->AddUIWidget<WPlaytimeUI>();
+}
+
+void CGameMap::AddScore(int32 Amount) {
+    Score += Amount;
+    PlaytimeUI->SetScore(Score);
 }
 
 void CGameMap::OnEscapePressed() { GEngine->Stop(); }
@@ -76,6 +101,7 @@ void CGameMap::SwitchCharacterBoat() {
         Controller->Parent = Player;
         Controller->DisableSteering = false;
         Controller->RotationSpeed = 540;
+        Controller->MovementSpeed = 6.0f;
     } else {
         if ((Player->GetWorldTransform().Position - Boat->GetWorldTransform().Position).Length() > 5) {
             Log("Game", ELogLevel::Verbose, "Too far from boat to enter!");
@@ -88,6 +114,7 @@ void CGameMap::SwitchCharacterBoat() {
         Controller->Parent = Boat;
         Controller->DisableSteering = true;
         Controller->RotationSpeed = 45;
+        Controller->MovementSpeed = 10.0f;
     }
     IsInBoat = !IsInBoat;
 }
