@@ -8,7 +8,7 @@ float noise(vec2 uv, float e, float offset) {
 
 #ifdef VERTEX
 vec3 GetWPO() {
-    return vec3(0.0, 0.0, pow(noise(FragWP.xy, 1.0, 0.0), 0.3) * 1.0);
+    return vec3(0.0, 0.0, pow(noise(FragWP.xy, 1.0, 0.0), 0.3) - 0.5);
 }
 #endif
 

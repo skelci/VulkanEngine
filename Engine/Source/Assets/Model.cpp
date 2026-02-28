@@ -71,7 +71,32 @@ void CModel::LoadFromFile(const std::string& filepath) {
 
             // Handle embedded textures if starts with *
             if (texturePath.length() > 0 && texturePath[0] == '*') {
-                Log("Model", ELogLevel::Warning, " - Embedded textures not fully supported yet: " + texturePath);
+                int textureIndex = std::stoi(texturePath.substr(1));
+                if (textureIndex < scene->mNumTextures) {
+                    aiTexture* aiTex = scene->mTextures[textureIndex];
+                    auto texture = std::make_shared<CTexture>();
+
+                    if (aiTex->mHeight == 0) {
+                        // Compressed texture (e.g. PNG, JPEG), mWidth is size in bytes
+                        texture->LoadFromMemory(reinterpret_cast<const unsigned char*>(aiTex->pcData), aiTex->mWidth);
+                    } else {
+                        // Uncompressed texture (ARGB8888), stored as aiTexel array, needs BGRA -> RGBA
+                        std::vector<unsigned char> rgbaData;
+                        rgbaData.resize(aiTex->mWidth * aiTex->mHeight * 4);
+
+                        for (unsigned int j = 0; j < aiTex->mWidth * aiTex->mHeight; ++j) {
+                            const aiTexel& texel = aiTex->pcData[j];
+                            rgbaData[j * 4 + 0] = texel.r;
+                            rgbaData[j * 4 + 1] = texel.g;
+                            rgbaData[j * 4 + 2] = texel.b;
+                            rgbaData[j * 4 + 3] = texel.a;
+                        }
+                        texture->CreateFromBuffer(rgbaData.data(), aiTex->mWidth, aiTex->mHeight);
+                    }
+                    material->SetProperty("Texture", texture);
+                } else {
+                    Log("Model", ELogLevel::Error, "Invalid embedded texture index: " + std::to_string(textureIndex));
+                }
             } else {
                 std::filesystem::path fullPath = modelDir / texturePath;
                 std::string fullPathStr = fullPath.string();
@@ -102,7 +127,30 @@ void CModel::LoadFromFile(const std::string& filepath) {
 
             // Handle embedded textures if starts with *
             if (texturePath.length() > 0 && texturePath[0] == '*') {
-                Log("Model", ELogLevel::Warning, " - Embedded textures not fully supported yet: " + texturePath);
+                int textureIndex = std::stoi(texturePath.substr(1));
+                if (textureIndex < scene->mNumTextures) {
+                    aiTexture* aiTex = scene->mTextures[textureIndex];
+                    auto texture = std::make_shared<CTexture>();
+
+                    if (aiTex->mHeight == 0) {
+                        texture->LoadFromMemory(reinterpret_cast<const unsigned char*>(aiTex->pcData), aiTex->mWidth);
+                    } else {
+                        std::vector<unsigned char> rgbaData;
+                        rgbaData.resize(aiTex->mWidth * aiTex->mHeight * 4);
+
+                        for (unsigned int j = 0; j < aiTex->mWidth * aiTex->mHeight; ++j) {
+                            const aiTexel& texel = aiTex->pcData[j];
+                            rgbaData[j * 4 + 0] = texel.r;
+                            rgbaData[j * 4 + 1] = texel.g;
+                            rgbaData[j * 4 + 2] = texel.b;
+                            rgbaData[j * 4 + 3] = texel.a;
+                        }
+                        texture->CreateFromBuffer(rgbaData.data(), aiTex->mWidth, aiTex->mHeight);
+                    }
+                    material->SetProperty("RoughnessMap", texture);
+                } else {
+                    Log("Model", ELogLevel::Error, "Invalid embedded texture index: " + std::to_string(textureIndex));
+                }
             } else {
                 std::filesystem::path fullPath = modelDir / texturePath;
                 std::string fullPathStr = fullPath.string();

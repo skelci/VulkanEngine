@@ -1,6 +1,9 @@
 #include "GameMap.hpp"
 
+#include "Actors/Boat.hpp"
 #include "Actors/Character.hpp"
+#include "Actors/Controller.hpp"
+#include "Actors/WaterCollision.hpp"
 
 #include "Actors/BoxCollision.hpp"
 #include "Actors/ComplexCollision.hpp"
@@ -17,12 +20,18 @@ void CGameMap::BeginPlay() {
         EKeys::Escape,
         MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Pressed, this, &CGameMap::OnEscapePressed)
     );
+    GameMC->AddMapping(
+        EKeys::E,
+        MAKE_INPUT_ACTION(EInputValueType::Digital, EInputEvent::Pressed, this, &CGameMap::SwitchCharacterBoat)
+    );
     GInputManager->AddMappingContext(GameMC);
 
     AMeshActor* Water = SpawnActor<AMeshActor>(AMeshActor::StaticClass());
     Water->Model = GetAsset<CModel>("Game/Meshes/HighResPlane.fbx");
     Water->Model->SetMaterial(GetAsset<CMaterial>("Game/Materials/Water.mat"));
     Water->Transform.Scale = SVector(1000, 1000, 1);
+
+    AWaterCollision* WaterCollision = Water->SpawnChildActor<AWaterCollision>(AWaterCollision::StaticClass());
 
     AMeshActor* Sand = SpawnActor<AMeshActor>(AMeshActor::StaticClass());
     Sand->Model = GetAsset<CModel>("Game/Meshes/Island.fbx");
@@ -34,8 +43,51 @@ void CGameMap::BeginPlay() {
     SandCollision->SetCollisionMeshFromMesh(Sand->Model->Meshes[0]);
     SandCollision->SetVisibility(true);
 
-    ACharacter* Player = SpawnActor<ACharacter>(ACharacter::StaticClass());
-    Player->Transform.Position = SVector(0, 0, 20);
+    Boat = SpawnActor<ABoat>(ABoat::StaticClass());
+    Boat->Transform.Position = SVector(52, 52, 1);
+    Boat->Transform.Rotation.Yaw = -45;
+
+    Player = SpawnActor<ACharacter>(ACharacter::StaticClass());
+    Player->Transform.Position = SVector(0, 0, 15);
+
+    Controller = SpawnActor<AController>(AController::StaticClass());
+    Controller->Parent = Player;
+    Controller->RotateTowardsMovement = true;
+    Controller->RotationSpeed = 540;
 }
 
 void CGameMap::OnEscapePressed() { GEngine->Stop(); }
+
+void CGameMap::SwitchCharacterBoat() {
+    if (IsInBoat) {
+        const STransform& BoatTransform = Boat->GetWorldTransform();
+        const SVector NewPlayerPos = BoatTransform.Position - BoatTransform.Position.NormalizedXY() * 3;
+        SHitResult HitResult;
+        if (LineTrace(NewPlayerPos + SVector(0, 0, 1), NewPlayerPos + SVector(0, 0, -5), HitResult)) {
+            if (!Cast<AComplexCollision>(HitResult.OtherActor)) {
+                Log("Game", ELogLevel::Verbose, "Couldn't find a safe spot to exit the boat!");
+                return;
+            }
+        }
+
+        Player->Parent = nullptr;
+        Player->Transform.Position = NewPlayerPos + SVector(0, 0, 1);
+        Player->SimulatePhysics = true;
+        Controller->Parent = Player;
+        Controller->DisableSteering = false;
+        Controller->RotationSpeed = 540;
+    } else {
+        if ((Player->GetWorldTransform().Position - Boat->GetWorldTransform().Position).Length() > 5) {
+            Log("Game", ELogLevel::Verbose, "Too far from boat to enter!");
+            return;
+        }
+        Player->Parent = Boat;
+        Player->Transform.Position = SVector(0, 0, 0.8f);
+        Player->Transform.Rotation = SRotator(0);
+        Player->SimulatePhysics = false;
+        Controller->Parent = Boat;
+        Controller->DisableSteering = true;
+        Controller->RotationSpeed = 45;
+    }
+    IsInBoat = !IsInBoat;
+}

@@ -92,10 +92,14 @@ struct SVector {
     SVector& operator/=(double Scalar);
 
     double LengthSquared() const;
+    double LengthXYSquared() const;
     double Length() const;
+    double LengthXY() const;
 
     SVector Normalized() const;
+    SVector NormalizedXY() const;
     SVector SafeNormalized(double Tolerance = SMALL_NUMBER) const;
+    SVector SafeNormalizedXY(double Tolerance = SMALL_NUMBER) const;
     SVector Abs() const;
 
     double Dot(const SVector& Other) const;

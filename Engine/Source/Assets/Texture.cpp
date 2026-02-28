@@ -105,3 +105,17 @@ void CTexture::LoadFromFile(const std::string& FilePath) {
 
     stbi_image_free(pixels);
 }
+
+void CTexture::LoadFromMemory(const unsigned char* buffer, int len) {
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load_from_memory(buffer, len, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+    if (!pixels) {
+        Log("Texture", ELogLevel::Error, "Failed to load texture from memory");
+        return;
+    }
+
+    CreateFromBuffer(pixels, texWidth, texHeight);
+
+    stbi_image_free(pixels);
+}

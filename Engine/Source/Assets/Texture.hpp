@@ -15,6 +15,7 @@ public:
     VkImageView GetImageView() const { return ImageView; }
 
     void CreateFromBuffer(void* pixels, int texWidth, int texHeight);
+    void LoadFromMemory(const unsigned char* buffer, int len);
 
     bool IsValid() const { return ImageView != VK_NULL_HANDLE; }
 

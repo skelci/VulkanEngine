@@ -63,6 +63,12 @@ void CEngine::MainLoop() {
 
     deltaTime *= SimulationSpeed;
 
+    if (deltaTime > 0.1f) {
+        Log("Engine", ELogLevel::Warning,
+            "Frame took too long (" + std::to_string(deltaTime) + "s). Clamping to avoid physics issues.");
+        deltaTime = 0.1f;
+    }
+
     GInputManager->Tick(deltaTime);
 
     World->Tick(deltaTime);

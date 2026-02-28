@@ -11,4 +11,10 @@ protected:
 
 private:
     void OnEscapePressed();
+    void SwitchCharacterBoat();
+
+    bool IsInBoat = false;
+    class AController* Controller;
+    class ACharacter* Player;
+    class ABoat* Boat;
 };

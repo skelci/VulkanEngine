@@ -5,7 +5,6 @@
 class AMeshActor;
 
 
-// This is treated as AABB, so rotation is not supported.
 class ABoxCollision : public APhysicsBody {
     CLASS_BODY(ABoxCollision, APhysicsBody)
 

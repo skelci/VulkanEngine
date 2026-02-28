@@ -17,10 +17,11 @@ struct SRotator {
     SRotator operator+(const SRotator& Other) const;
     SRotator& operator+=(const SRotator& Other);
 
-    SRotator AsRadians() const;
+    SRotator InterpTo(const SRotator& Target, float DeltaTime, float InterpSpeed) const;
 
     SVector ForwardVector() const;
 
+    SRotator AsRadians() const;
     SVector ToEuler() const;
     std::string ToString() const;
 };

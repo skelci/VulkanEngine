@@ -6,9 +6,12 @@
 class APhysicsBody;
 
 struct SHitResult {
-    APhysicsBody* OtherActor;
-    SVector Penetration;
-    float DeltaTime;
+    APhysicsBody* OtherActor = nullptr;
+    SVector Penetration = SVector(0);
+    float DeltaTime = 0.0f;
+    SVector Location = SVector(0);
+    SVector Normal = SVector(0);
+    float Distance = 0.0f;
 };
 
 

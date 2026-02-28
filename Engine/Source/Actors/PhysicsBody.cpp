@@ -8,7 +8,6 @@ void APhysicsBody::Tick(float DeltaTime) {
     if (SimulatePhysics) {
         Velocity += GetWorld()->Gravity * DeltaTime;
         CachedPosition = Transform.Position;
-        Transform.Position += Velocity * DeltaTime;
     }
 
     Super::Tick(DeltaTime);

@@ -15,7 +15,13 @@ SRotator& SRotator::operator+=(const SRotator& Other) {
     return *this;
 }
 
-SRotator SRotator::AsRadians() const { return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll)); }
+SRotator SRotator::InterpTo(const SRotator& Target, float DeltaTime, float InterpSpeed) const {
+    const float InterpFactor = 1 - std::exp(-InterpSpeed * DeltaTime);
+    return SRotator(
+        Pitch + (Target.Pitch - Pitch) * InterpFactor, Yaw + (Target.Yaw - Yaw) * InterpFactor,
+        Roll + (Target.Roll - Roll) * InterpFactor
+    );
+}
 
 SVector SRotator::ForwardVector() const {
     const float P = ToRadians(Pitch);
@@ -27,6 +33,8 @@ SVector SRotator::ForwardVector() const {
 
     return SVector(CP * CY, CP * SY, SP);
 }
+
+SRotator SRotator::AsRadians() const { return SRotator(ToRadians(Pitch), ToRadians(Yaw), ToRadians(Roll)); }
 
 SVector SRotator::ToEuler() const { return SVector(Roll, Pitch, Yaw); }
 

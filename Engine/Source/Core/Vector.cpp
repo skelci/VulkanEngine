@@ -192,12 +192,18 @@ SVector& SVector::operator/=(double Scalar) {
 
 double SVector::LengthSquared() const { return X * X + Y * Y + Z * Z; }
 
+double SVector::LengthXYSquared() const { return X * X + Y * Y; }
+
 double SVector::Length() const { return std::sqrt(LengthSquared()); }
+
+double SVector::LengthXY() const { return std::sqrt(X * X + Y * Y); }
 
 SVector SVector::Normalized() const {
     const double InvLen = 1 / Length();
     return SVector(X * InvLen, Y * InvLen, Z * InvLen);
 }
+
+SVector SVector::NormalizedXY() const { return SVector(X, Y, 0).Normalized(); }
 
 SVector SVector::SafeNormalized(double Tolerance) const {
     const double Len = Length();
@@ -206,6 +212,15 @@ SVector SVector::SafeNormalized(double Tolerance) const {
     }
     const double InvLen = 1.0 / Len;
     return SVector(X * InvLen, Y * InvLen, Z * InvLen);
+}
+
+SVector SVector::SafeNormalizedXY(double Tolerance) const {
+    const double Len = LengthXY();
+    if (Len < Tolerance) {
+        return SVector();
+    }
+    const double InvLen = 1.0 / Len;
+    return SVector(X * InvLen, Y * InvLen, 0);
 }
 
 SVector SVector::Abs() const { return SVector(std::abs(X), std::abs(Y), std::abs(Z)); }
@@ -247,7 +262,11 @@ SVector SVector::Rotated(const SRotator& Rotator) const {
 
 glm::vec3 SVector::ToGLMVec3() const { return glm::vec3(X, Y, Z); }
 
-SRotator SVector::ToRotator() const { return SRotator(X, Y, Z); }
+SRotator SVector::ToRotator() const {
+    const float Yaw = std::atan2(Y, X);
+    const float Pitch = std::atan2(Z, LengthXY());
+    return SRotator(ToDegrees(Pitch), ToDegrees(Yaw), 0);
+}
 
 std::string SVector::ToString() const {
     return "SVector(" + std::to_string(X) + ", " + std::to_string(Y) + ", " + std::to_string(Z) + ")";

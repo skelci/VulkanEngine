@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+struct SHitResult;
 class APhysicsBody;
 class ABoxCollision;
 class AComplexCollision;
@@ -39,6 +40,9 @@ public:
 
 private:
     std::vector<std::unique_ptr<AActor>> Actors;
+
+public:
+    bool LineTrace(const SVector& Start, const SVector& End, SHitResult& OutHit) const;
 
 protected:
     void SolveCollisions(float DeltaTime);
