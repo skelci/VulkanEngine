@@ -35,7 +35,7 @@ public:
 
     // Allow assignment from TSubclassOf<Child>
     template <typename U>
-    TSubclassOf(const TSubclassOf<U>& Other) : ClassPtr(Other.ClassPtr) {
+    TSubclassOf(const TSubclassOf<U>& Other) : ClassPtr(Other.Get()) {
         static_assert(std::is_base_of_v<T, U>, "U must derive from T");
     }
 

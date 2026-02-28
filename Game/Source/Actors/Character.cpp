@@ -1,6 +1,5 @@
 #include "Character.hpp"
 
-#include "Actors/Camera.hpp"
 #include "Actors/MeshActor.hpp"
 #include "Actors/WaterCollision.hpp"
 
@@ -11,7 +10,7 @@ ACharacter::ACharacter() {
     SetVisibility(true);
 
     Mesh = SpawnChildActor<AMeshActor>(AMeshActor::StaticClass());
-    Mesh->Model = GetAsset<CModel>("Game/Character/burnice.fbx");
+    Mesh->Model = GetAsset<CModel>("Game/Character/burnice.fbx", true);
     Mesh->Model->SetMaterialProperty("LightColor", SVector3(1.5f, 1.5f, 1.5f));
     Mesh->Model->SetMaterialProperty("AmbientLight", SVector3(0.5f));
     Mesh->Transform.Rotation.Yaw = 90.0f;

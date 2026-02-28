@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Actors/BoxCollision.hpp"
 #include "CoreMinimal.hpp"
 
 
@@ -11,16 +12,19 @@ protected:
 
 public:
     void AddScore(int32 Amount = 1);
-
-private:
     void OnEscapePressed();
     void SwitchCharacterBoat();
 
-    bool IsInBoat = false;
     class AController* Controller;
     class ACharacter* Player;
+
+private:
+    bool IsInBoat = false;
     class ABoat* Boat;
 
     class WPlaytimeUI* PlaytimeUI;
     int32 Score = 0;
+
+protected:
+    ABoxCollision* SpawnAtRandomLocation(const TSubclassOf<ABoxCollision>& ActorClass);
 };

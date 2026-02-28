@@ -3,6 +3,8 @@
 #include "Actors/Boat.hpp"
 #include "Actors/Character.hpp"
 #include "Actors/Controller.hpp"
+#include "Actors/Enemy.hpp"
+#include "Actors/Teammate.hpp"
 #include "Actors/Trash.hpp"
 #include "Actors/WaterCollision.hpp"
 #include "UI/PlaytimeUI.hpp"
@@ -49,8 +51,7 @@ void CGameMap::BeginPlay() {
     Boat->Transform.Position = SVector(52, 52, 1);
     Boat->Transform.Rotation.Yaw = -45;
 
-    Player = SpawnActor<ACharacter>(ACharacter::StaticClass());
-    Player->Transform.Position = SVector(0, 0, 15);
+    Player = Cast<ACharacter>(SpawnAtRandomLocation(ACharacter::StaticClass()));
 
     Controller = SpawnActor<AController>(AController::StaticClass());
     Controller->Parent = Player;
@@ -72,6 +73,16 @@ void CGameMap::BeginPlay() {
         Trash->Transform.Rotation.Yaw = Random::RandRange(0.0, 360.0);
         Trash->SetVisibility(true);
     }
+
+    for (int32 i = 0; i < 5; i++) {
+        SpawnAtRandomLocation(AEnemy::StaticClass())->SetVisibility(true);
+    }
+
+    for (int32 i = 0; i < 5; i++) {
+        SpawnAtRandomLocation(ATeammate::StaticClass())->SetVisibility(true);
+    }
+
+    GEngine->GetRenderer()->ClearUIWidgets();
 
     PlaytimeUI = GEngine->GetRenderer()->AddUIWidget<WPlaytimeUI>();
 }
@@ -117,4 +128,19 @@ void CGameMap::SwitchCharacterBoat() {
         Controller->MovementSpeed = 10.0f;
     }
     IsInBoat = !IsInBoat;
+}
+
+ABoxCollision* CGameMap::SpawnAtRandomLocation(const TSubclassOf<ABoxCollision>& ActorClass) {
+    const SVector RandomPos = SVector(Random::RandRange(-100.0, 100.0), Random::RandRange(-100.0, 100.0), 0);
+
+    SHitResult HitResult;
+    LineTrace(RandomPos + SVector(0, 0, 20), RandomPos + SVector(0, 0, -5), HitResult);
+    if (!Cast<AComplexCollision>(HitResult.OtherActor)) {
+        return SpawnAtRandomLocation(ActorClass);
+    }
+
+    ABoxCollision* NewActor = SpawnActor<ABoxCollision>(ActorClass);
+    NewActor->Transform.Position = HitResult.Location + SVector(0, 0, NewActor->GetBoxExtent().Z);
+    NewActor->Transform.Rotation.Yaw = Random::RandRange(0.0, 360.0);
+    return NewActor;
 }
