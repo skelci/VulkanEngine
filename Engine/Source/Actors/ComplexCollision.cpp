@@ -9,6 +9,7 @@ void AComplexCollision::SetCollisionMeshFromMesh(const CMesh& Mesh) {
         Vertices.emplace_back(Vertex.Position.x, Vertex.Position.y, Vertex.Position.z);
     }
     Indices = Mesh.GetIndices();
+    IsCacheDirty = true;
 
     if (VisualMesh) {
         GetWorld()->DestroyActor(VisualMesh);
@@ -31,4 +32,21 @@ void AComplexCollision::SetCollisionMeshFromMesh(const CMesh& Mesh) {
 void AComplexCollision::SetVisibility(bool IsVisible) {
     IsMeshVisible = IsVisible;
     if (VisualMesh) VisualMesh->IsVisible = IsVisible;
+}
+
+const std::vector<SVector>& AComplexCollision::GetWorldVertices() const {
+    const STransform& CurrentTransform = GetWorldTransform();
+
+    // Check if transform has changed
+    if (IsCacheDirty || CurrentTransform != CachedTransform) {
+        CachedWorldVertices.resize(Vertices.size());
+        for (size_t i = 0; i < Vertices.size(); ++i) {
+            CachedWorldVertices[i] =
+                (Vertices[i] * CurrentTransform.Scale).Rotated(CurrentTransform.Rotation) + CurrentTransform.Position;
+        }
+        CachedTransform = CurrentTransform;
+        IsCacheDirty = false;
+    }
+
+    return CachedWorldVertices;
 }

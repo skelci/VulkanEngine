@@ -74,11 +74,11 @@ void CGameMap::BeginPlay() {
         Trash->SetVisibility(true);
     }
 
-    for (int32 i = 0; i < 5; i++) {
+    for (int32 i = 0; i < 10; i++) {
         SpawnAtRandomLocation(AEnemy::StaticClass())->SetVisibility(true);
     }
 
-    for (int32 i = 0; i < 5; i++) {
+    for (int32 i = 0; i < 10; i++) {
         SpawnAtRandomLocation(ATeammate::StaticClass())->SetVisibility(true);
     }
 

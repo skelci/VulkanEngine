@@ -4,6 +4,12 @@
 #include "Vector.hpp"
 
 
+bool SRotator::operator==(const SRotator& Other) const {
+    return Pitch == Other.Pitch && Yaw == Other.Yaw && Roll == Other.Roll;
+}
+
+bool SRotator::operator!=(const SRotator& Other) const { return !(*this == Other); }
+
 SRotator SRotator::operator+(const SRotator& Other) const {
     return SRotator(Pitch + Other.Pitch, Yaw + Other.Yaw, Roll + Other.Roll);
 }

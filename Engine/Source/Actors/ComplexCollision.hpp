@@ -15,10 +15,17 @@ public:
     void SetCollisionMeshFromMesh(const CMesh& Mesh);
     void SetVisibility(bool IsVisible);
 
+    const std::vector<SVector>& GetWorldVertices() const;
+    const std::vector<uint32>& GetIndices() const { return Indices; }
+
+protected:
     std::vector<SVector> Vertices;
     std::vector<uint32> Indices;
 
-protected:
     class AMeshActor* VisualMesh = nullptr;
     bool IsMeshVisible = false;
+
+    mutable STransform CachedTransform;
+    mutable std::vector<SVector> CachedWorldVertices;
+    mutable bool IsCacheDirty = true;
 };

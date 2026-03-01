@@ -14,6 +14,9 @@ struct SRotator {
     SRotator(float uniform) : Pitch(uniform), Yaw(uniform), Roll(uniform) {}
     SRotator(float pitch, float yaw, float roll) : Pitch(pitch), Yaw(yaw), Roll(roll) {}
 
+    bool operator==(const SRotator& Other) const;
+    bool operator!=(const SRotator& Other) const;
+
     SRotator operator+(const SRotator& Other) const;
     SRotator& operator+=(const SRotator& Other);
 

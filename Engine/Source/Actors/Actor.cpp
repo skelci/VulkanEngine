@@ -3,6 +3,13 @@
 #include "EngineStatics.hpp"
 
 
+bool STransform::operator==(const STransform& Other) const {
+    return Position == Other.Position && Rotation == Other.Rotation && Scale == Other.Scale;
+}
+
+bool STransform::operator!=(const STransform& Other) const { return !(*this == Other); }
+
+
 STransform AActor::GetWorldTransform() const {
     if (!Parent) {
         return Transform;

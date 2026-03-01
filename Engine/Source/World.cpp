@@ -81,22 +81,17 @@ bool CWorld::LineTrace(const SVector& Start, const SVector& End, SHitResult& Out
                 HitActor = true;
             }
         } else if (Complex) {
-            const std::vector<SVector>& Vertices = Complex->Vertices;
-            const std::vector<uint32>& Indices = Complex->Indices;
-            const STransform& Transform = Complex->GetWorldTransform();
+            const std::vector<SVector>& Vertices = Complex->GetWorldVertices();
+            const std::vector<uint32>& Indices = Complex->GetIndices();
 
             float MinComplexDist = MaxDist;
             SVector BestComplexNormal = SVector(0);
             bool HitAnyTri = false;
 
             for (size_t i = 0; i < Indices.size(); i += 3) {
-                SVector V0 = Vertices[Indices[i]];
-                SVector V1 = Vertices[Indices[i + 1]];
-                SVector V2 = Vertices[Indices[i + 2]];
-
-                V0 = (V0 * Transform.Scale).Rotated(Transform.Rotation) + Transform.Position;
-                V1 = (V1 * Transform.Scale).Rotated(Transform.Rotation) + Transform.Position;
-                V2 = (V2 * Transform.Scale).Rotated(Transform.Rotation) + Transform.Position;
+                const SVector& V0 = Vertices[Indices[i]];
+                const SVector& V1 = Vertices[Indices[i + 1]];
+                const SVector& V2 = Vertices[Indices[i + 2]];
 
                 float TriDist = 0.0f;
                 SVector TriNormal;
@@ -263,8 +258,8 @@ bool CWorld::CheckCollisionBoxBox(const ABoxCollision* A, const ABoxCollision* B
 bool CWorld::CheckCollisionBoxComplex(
     const ABoxCollision* Box, const AComplexCollision* Complex, SVector& OutPenetration
 ) const {
-    const std::vector<SVector>& Vertices = Complex->Vertices;
-    const std::vector<uint32>& Indices = Complex->Indices;
+    const std::vector<SVector>& Vertices = Complex->GetWorldVertices();
+    const std::vector<uint32>& Indices = Complex->GetIndices();
 
     const STransform& BoxTransform = Box->GetWorldTransform();
     const SVector BoxSemiextent = Box->GetBoxExtent() * BoxTransform.Scale;
@@ -274,31 +269,24 @@ bool CWorld::CheckCollisionBoxComplex(
     const SVector BY = SVector(0, 1, 0).Rotated(BoxTransform.Rotation);
     const SVector BZ = SVector(0, 0, 1).Rotated(BoxTransform.Rotation);
 
-    bool bHasCollision = false;
+    const double BoxRadius = BoxSemiextent.Length();
+    const SVector BoxMin = BoxCenter - SVector(BoxRadius);
+    const SVector BoxRadiusVec = SVector(BoxRadius * 2);
+
+    bool HasCollision = false;
     OutPenetration = SVector(0);
 
     for (int32 i = 0; i < Indices.size(); i += 3) {
-        const STransform& ComplexTransform = Complex->GetWorldTransform();
-        const SVector ComplexScale = ComplexTransform.Scale;
-        const SVector ComplexPos = ComplexTransform.Position;
-
-        SVector V0 = Vertices[Indices[i]];
-        SVector V1 = Vertices[Indices[i + 1]];
-        SVector V2 = Vertices[Indices[i + 2]];
-
-        V0 = (V0 * ComplexScale).Rotated(ComplexTransform.Rotation) + ComplexPos;
-        V1 = (V1 * ComplexScale).Rotated(ComplexTransform.Rotation) + ComplexPos;
-        V2 = (V2 * ComplexScale).Rotated(ComplexTransform.Rotation) + ComplexPos;
+        const SVector& V0 = Vertices[Indices[i]];
+        const SVector& V1 = Vertices[Indices[i + 1]];
+        const SVector& V2 = Vertices[Indices[i + 2]];
 
         const SVector TriMin =
             SVector(std::min({V0.X, V1.X, V2.X}), std::min({V0.Y, V1.Y, V2.Y}), std::min({V0.Z, V1.Z, V2.Z}));
         const SVector TriMax =
             SVector(std::max({V0.X, V1.X, V2.X}), std::max({V0.Y, V1.Y, V2.Y}), std::max({V0.Z, V1.Z, V2.Z}));
 
-        const double BoxRadius = BoxSemiextent.Length();
-        if (!AreBoundingBoxesOverlapping(
-                TriMin, TriMax - TriMin, BoxCenter - SVector(BoxRadius), SVector(BoxRadius * 2.0)
-            )) {
+        if (!AreBoundingBoxesOverlapping(TriMin, TriMax - TriMin, BoxMin, BoxRadiusVec)) {
             continue;
         }
 
@@ -368,9 +356,9 @@ bool CWorld::CheckCollisionBoxComplex(
                 OutPenetration = TriangleMTV;
             }
 
-            bHasCollision = true;
+            HasCollision = true;
         }
     }
 
-    return bHasCollision;
+    return HasCollision;
 }
