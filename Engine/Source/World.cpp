@@ -3,28 +3,42 @@
 #include "Actors/BoxCollision.hpp"
 #include "Actors/ComplexCollision.hpp"
 #include "EngineStatics.hpp"
+#include "Profiler.hpp"
 
 
 void CWorld::BeginPlay() {}
 
 void CWorld::Tick(float DeltaTime) {
-    for (const auto& Actor : Actors) {
-        if (!Actor->IsPendingDestroy) {
-            Actor->Tick(DeltaTime);
+    TRACE_FUNCTION();
+    {
+        TRACE_SCOPE("Actor Ticking");
+        for (const auto& Actor : Actors) {
+            if (!Actor->IsPendingDestroy) {
+                Actor->Tick(DeltaTime);
+            }
         }
     }
-    for (const auto& Actor : GetActors<APhysicsBody>()) {
-        if (Actor->SimulatePhysics) {
-            Actor->Transform.Position += Actor->Velocity * DeltaTime;
+    {
+        TRACE_SCOPE("Physics Movement");
+        for (const auto& Actor : GetActors<APhysicsBody>()) {
+            if (Actor->SimulatePhysics) {
+                Actor->Transform.Position += Actor->Velocity * DeltaTime;
+            }
         }
     }
-    SolveCollisions(DeltaTime);
+    {
+        TRACE_SCOPE("Solve Collisions");
+        SolveCollisions(DeltaTime);
+    }
 
-    for (auto it = Actors.begin(); it != Actors.end();) {
-        if ((*it)->IsPendingDestroy) {
-            it = Actors.erase(it);
-        } else {
-            ++it;
+    {
+        TRACE_SCOPE("Garbage Collection");
+        for (auto it = Actors.begin(); it != Actors.end();) {
+            if ((*it)->IsPendingDestroy) {
+                it = Actors.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 }

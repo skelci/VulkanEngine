@@ -6,6 +6,7 @@
 #include "Assets/Model.hpp"
 #include "Assets/Texture.hpp"
 #include "EngineStatics.hpp"
+#include "Profiler.hpp"
 #include "Widgets/ContainerBase.hpp"
 #include "Widgets/Image.hpp"
 #include "Widgets/Text.hpp"
@@ -1161,7 +1162,12 @@ void CRenderer::EnqueueForDeletion(std::function<void()>&& func) {
 }
 
 void CRenderer::DrawFrame() {
-    vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    TRACE_FUNCTION();
+
+    {
+        TRACE_SCOPE("Wait for fences");
+        vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+    }
 
     if (currentFrame < DeletionQueues.size()) {
         for (auto& func : DeletionQueues[currentFrame]) {
@@ -1189,7 +1195,10 @@ void CRenderer::DrawFrame() {
 
     vkResetFences(device, 1, &inFlightFences[currentFrame]);
     vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-    RecordCommandBuffer(commandBuffers[currentFrame], imageIndex, currentFrame);
+    {
+        TRACE_SCOPE("Record command buffer");
+        RecordCommandBuffer(commandBuffers[currentFrame], imageIndex, currentFrame);
+    }
 
     UpdateUniformBuffer(currentFrame);
 

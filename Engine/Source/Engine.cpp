@@ -4,6 +4,7 @@
 #include "Assets/Texture.hpp"
 #include "DefaultEngineConfig.hpp"
 #include "EngineStatics.hpp"
+#include "Profiler.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -21,6 +22,7 @@ CEngine::CEngine() {
 }
 
 void CEngine::Initialize() {
+    CProfilerManager::Get().BeginSession();
     srand(time(nullptr));
 
     ConfigureEngine();
@@ -47,6 +49,8 @@ void CEngine::Initialize() {
 }
 
 void CEngine::MainLoop() {
+    TRACE_FUNCTION();
+
     glfwPollEvents();
     if (glfwWindowShouldClose(Window)) {
         IsRunning = false;
@@ -91,6 +95,8 @@ void CEngine::Shutdown() {
     glfwTerminate();
 
     delete GLog;
+
+    CProfilerManager::Get().EndSession();
 }
 
 void CEngine::CreateWindow() {
