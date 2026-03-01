@@ -295,12 +295,16 @@ bool CWorld::CheckCollisionBoxComplex(
     const SVector BZ = SVector(0, 0, 1).Rotated(BoxTransform.Rotation);
 
     const std::vector<SVector>& Vertices = Complex->GetWorldVertices();
+
+    const SVector BoxAABBMin = BoxCenter - BoxRadiusExtent;
+    const SVector BoxAABBMax = BoxCenter + BoxRadiusExtent;
+    const std::vector<uint32> OverlappingTriangles = Complex->GetOverlappingTriangles(BoxAABBMin, BoxAABBMax);
     const std::vector<uint32>& Indices = Complex->GetIndices();
 
     bool HasCollision = false;
     OutPenetration = SVector(0);
 
-    for (int32 i = 0; i < Indices.size(); i += 3) {
+    for (uint32 i : OverlappingTriangles) {
         const SVector& V0 = Vertices[Indices[i]];
         const SVector& V1 = Vertices[Indices[i + 1]];
         const SVector& V2 = Vertices[Indices[i + 2]];
@@ -324,7 +328,7 @@ bool CWorld::CheckCollisionBoxComplex(
         const SVector TriNormal = E0.Cross(E1);
 
         // SAT Axes
-        SVector Axes[13] = {BX,           BY,           BZ,           TriNormal,    BX.Cross(E0),
+        SVector Axes[13] = {TriNormal,    BX,           BY,           BZ,           BX.Cross(E0),
                             BX.Cross(E1), BX.Cross(E2), BY.Cross(E0), BY.Cross(E1), BY.Cross(E2),
                             BZ.Cross(E0), BZ.Cross(E1), BZ.Cross(E2)};
 

@@ -2,6 +2,8 @@
 
 #include "MeshActor.hpp"
 
+#include <unordered_set>
+
 
 void AComplexCollision::SetCollisionMeshFromMesh(const CMesh& Mesh) {
     Vertices.clear();
@@ -69,7 +71,63 @@ void AComplexCollision::UpdateCache() const {
             CachedAABBMax.Z = std::max(CachedAABBMax.Z, CachedWorldVertices[i].Z);
         }
 
+        SpatialGrid.clear();
+        for (size_t i = 0; i < Indices.size(); i += 3) {
+            const SVector& V0 = CachedWorldVertices[Indices[i]];
+            const SVector& V1 = CachedWorldVertices[Indices[i + 1]];
+            const SVector& V2 = CachedWorldVertices[Indices[i + 2]];
+
+            SVector TriMin =
+                SVector(std::min({V0.X, V1.X, V2.X}), std::min({V0.Y, V1.Y, V2.Y}), std::min({V0.Z, V1.Z, V2.Z}));
+            SVector TriMax =
+                SVector(std::max({V0.X, V1.X, V2.X}), std::max({V0.Y, V1.Y, V2.Y}), std::max({V0.Z, V1.Z, V2.Z}));
+
+            int32 minX = static_cast<int32>(std::floor(TriMin.X / GridCellSize));
+            int32 maxX = static_cast<int32>(std::floor(TriMax.X / GridCellSize));
+            int32 minY = static_cast<int32>(std::floor(TriMin.Y / GridCellSize));
+            int32 maxY = static_cast<int32>(std::floor(TriMax.Y / GridCellSize));
+            int32 minZ = static_cast<int32>(std::floor(TriMin.Z / GridCellSize));
+            int32 maxZ = static_cast<int32>(std::floor(TriMax.Z / GridCellSize));
+
+            for (int32 x = minX; x <= maxX; ++x) {
+                for (int32 y = minY; y <= maxY; ++y) {
+                    for (int32 z = minZ; z <= maxZ; ++z) {
+                        SpatialGrid[{x, y, z}].push_back(static_cast<uint32>(i));
+                    }
+                }
+            }
+        }
+
         CachedTransform = CurrentTransform;
         IsCacheDirty = false;
     }
+}
+
+std::vector<uint32> AComplexCollision::GetOverlappingTriangles(
+    const SVector& BoundsMin, const SVector& BoundsMax
+) const {
+    UpdateCache();
+
+    int32 minX = static_cast<int32>(std::floor(BoundsMin.X / GridCellSize));
+    int32 maxX = static_cast<int32>(std::floor(BoundsMax.X / GridCellSize));
+    int32 minY = static_cast<int32>(std::floor(BoundsMin.Y / GridCellSize));
+    int32 maxY = static_cast<int32>(std::floor(BoundsMax.Y / GridCellSize));
+    int32 minZ = static_cast<int32>(std::floor(BoundsMin.Z / GridCellSize));
+    int32 maxZ = static_cast<int32>(std::floor(BoundsMax.Z / GridCellSize));
+
+    std::unordered_set<uint32> UniqueTriangles;
+    for (int32 x = minX; x <= maxX; ++x) {
+        for (int32 y = minY; y <= maxY; ++y) {
+            for (int32 z = minZ; z <= maxZ; ++z) {
+                auto it = SpatialGrid.find({x, y, z});
+                if (it != SpatialGrid.end()) {
+                    for (uint32 TriIdx : it->second) {
+                        UniqueTriangles.insert(TriIdx);
+                    }
+                }
+            }
+        }
+    }
+
+    return std::vector<uint32>(UniqueTriangles.begin(), UniqueTriangles.end());
 }

@@ -1189,6 +1189,7 @@ void CRenderer::DrawFrame() {
     }
 
     if (inFlightImages[imageIndex] != VK_NULL_HANDLE) {
+        TRACE_SCOPE("Wait for in-flight image");
         vkWaitForFences(device, 1, &inFlightImages[imageIndex], VK_TRUE, UINT64_MAX);
     }
     inFlightImages[imageIndex] = inFlightFences[currentFrame];
