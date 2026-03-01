@@ -35,18 +35,41 @@ void AComplexCollision::SetVisibility(bool IsVisible) {
 }
 
 const std::vector<SVector>& AComplexCollision::GetWorldVertices() const {
-    const STransform& CurrentTransform = GetWorldTransform();
+    UpdateCache();
+    return CachedWorldVertices;
+}
 
-    // Check if transform has changed
+SVector AComplexCollision::GetAABBMin() const {
+    UpdateCache();
+    return CachedAABBMin;
+}
+
+SVector AComplexCollision::GetAABBMax() const {
+    UpdateCache();
+    return CachedAABBMax;
+}
+
+void AComplexCollision::UpdateCache() const {
+    const STransform& CurrentTransform = GetWorldTransform();
     if (IsCacheDirty || CurrentTransform != CachedTransform) {
+        CachedAABBMin = SVector(DOUBLE_INF);
+        CachedAABBMax = SVector(-DOUBLE_INF);
         CachedWorldVertices.resize(Vertices.size());
+
         for (size_t i = 0; i < Vertices.size(); ++i) {
             CachedWorldVertices[i] =
                 (Vertices[i] * CurrentTransform.Scale).Rotated(CurrentTransform.Rotation) + CurrentTransform.Position;
+
+            CachedAABBMin.X = std::min(CachedAABBMin.X, CachedWorldVertices[i].X);
+            CachedAABBMin.Y = std::min(CachedAABBMin.Y, CachedWorldVertices[i].Y);
+            CachedAABBMin.Z = std::min(CachedAABBMin.Z, CachedWorldVertices[i].Z);
+
+            CachedAABBMax.X = std::max(CachedAABBMax.X, CachedWorldVertices[i].X);
+            CachedAABBMax.Y = std::max(CachedAABBMax.Y, CachedWorldVertices[i].Y);
+            CachedAABBMax.Z = std::max(CachedAABBMax.Z, CachedWorldVertices[i].Z);
         }
+
         CachedTransform = CurrentTransform;
         IsCacheDirty = false;
     }
-
-    return CachedWorldVertices;
 }

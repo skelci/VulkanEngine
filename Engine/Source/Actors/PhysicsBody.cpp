@@ -16,8 +16,6 @@ void APhysicsBody::Tick(float DeltaTime) {
 void APhysicsBody::OnHit(const SHitResult& HitResult, SVector& OutAdjustment) {
     // Ground friction
     if (HitResult.Penetration.Normalized().Z > std::cos(ToRadians(45.0f))) {
-        const double Friction = 0.9f;
-
         const SVector Normal = HitResult.Penetration.Normalized();
         const SVector ActualVelocity = (Transform.Position - CachedPosition) / HitResult.DeltaTime;
         const SVector TangentVelocity = ActualVelocity - Normal * ActualVelocity.Dot(Normal);

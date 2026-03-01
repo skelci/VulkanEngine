@@ -24,6 +24,7 @@ public:
     virtual void OnHit(const SHitResult& HitResult, SVector& OutAdjustment);
 
     SVector Velocity;
+    float Friction = 0.5f;
     bool SimulatePhysics = false;
 
 protected:

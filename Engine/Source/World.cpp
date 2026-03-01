@@ -258,20 +258,30 @@ bool CWorld::CheckCollisionBoxBox(const ABoxCollision* A, const ABoxCollision* B
 bool CWorld::CheckCollisionBoxComplex(
     const ABoxCollision* Box, const AComplexCollision* Complex, SVector& OutPenetration
 ) const {
-    const std::vector<SVector>& Vertices = Complex->GetWorldVertices();
-    const std::vector<uint32>& Indices = Complex->GetIndices();
-
     const STransform& BoxTransform = Box->GetWorldTransform();
     const SVector BoxSemiextent = Box->GetBoxExtent() * BoxTransform.Scale;
     const SVector BoxCenter = BoxTransform.Position;
+
+    const double BoxRadius = BoxSemiextent.Length();
+    const SVector BoxRadiusExtent = SVector(BoxRadius);
+
+    const SVector ComplexMin = Complex->GetAABBMin();
+    const SVector ComplexMax = Complex->GetAABBMax();
+
+    const SVector ComplexCenter = (ComplexMin + ComplexMax) * 0.5;
+    const SVector ComplexExtent = (ComplexMax - ComplexMin) * 0.5;
+
+    if (!AreBoundingBoxesOverlapping(ComplexCenter, ComplexExtent, BoxCenter, BoxRadiusExtent)) {
+        OutPenetration = SVector(0);
+        return false;
+    }
 
     const SVector BX = SVector(1, 0, 0).Rotated(BoxTransform.Rotation);
     const SVector BY = SVector(0, 1, 0).Rotated(BoxTransform.Rotation);
     const SVector BZ = SVector(0, 0, 1).Rotated(BoxTransform.Rotation);
 
-    const double BoxRadius = BoxSemiextent.Length();
-    const SVector BoxMin = BoxCenter - SVector(BoxRadius);
-    const SVector BoxRadiusVec = SVector(BoxRadius * 2);
+    const std::vector<SVector>& Vertices = Complex->GetWorldVertices();
+    const std::vector<uint32>& Indices = Complex->GetIndices();
 
     bool HasCollision = false;
     OutPenetration = SVector(0);
@@ -286,7 +296,11 @@ bool CWorld::CheckCollisionBoxComplex(
         const SVector TriMax =
             SVector(std::max({V0.X, V1.X, V2.X}), std::max({V0.Y, V1.Y, V2.Y}), std::max({V0.Z, V1.Z, V2.Z}));
 
-        if (!AreBoundingBoxesOverlapping(TriMin, TriMax - TriMin, BoxMin, BoxRadiusVec)) {
+        const SVector TriCenter = (TriMin + TriMax) * 0.5;
+        const SVector TriExtent = (TriMax - TriMin) * 0.5;
+
+        // Use Center and Extent correctly for AreBoundingBoxesOverlapping
+        if (!AreBoundingBoxesOverlapping(TriCenter, TriExtent, BoxCenter, BoxRadiusExtent)) {
             continue;
         }
 

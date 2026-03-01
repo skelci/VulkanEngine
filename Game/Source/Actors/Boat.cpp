@@ -8,6 +8,7 @@
 
 ABoat::ABoat() {
     SimulatePhysics = true;
+    Friction = 0.1f;
     SetBoxExtent(SVector(2.0f, 0.75f, 0.19f));
     SetVisibility(true);
 

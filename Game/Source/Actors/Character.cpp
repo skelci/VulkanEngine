@@ -6,6 +6,7 @@
 
 ACharacter::ACharacter() {
     SimulatePhysics = true;
+    Friction = 1;
     SetBoxExtent(SVector(0.25f, 0.25f, 0.6f));
     SetVisibility(true);
 

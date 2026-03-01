@@ -13,4 +13,7 @@ public:
     virtual void Tick(float DeltaTime) override;
 
     virtual void OnHit(const SHitResult& HitResult, SVector& OutAdjustment) override;
+
+protected:
+    bool HasTrash = true;
 };

@@ -18,6 +18,9 @@ public:
     const std::vector<SVector>& GetWorldVertices() const;
     const std::vector<uint32>& GetIndices() const { return Indices; }
 
+    SVector GetAABBMin() const;
+    SVector GetAABBMax() const;
+
 protected:
     std::vector<SVector> Vertices;
     std::vector<uint32> Indices;
@@ -25,6 +28,10 @@ protected:
     class AMeshActor* VisualMesh = nullptr;
     bool IsMeshVisible = false;
 
+    void UpdateCache() const;
+
+    mutable SVector CachedAABBMin;
+    mutable SVector CachedAABBMax;
     mutable STransform CachedTransform;
     mutable std::vector<SVector> CachedWorldVertices;
     mutable bool IsCacheDirty = true;
