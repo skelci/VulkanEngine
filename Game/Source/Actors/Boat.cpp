@@ -10,7 +10,6 @@ ABoat::ABoat() {
     SimulatePhysics = true;
     Friction = 0.1f;
     SetBoxExtent(SVector(2.0f, 0.75f, 0.19f));
-    SetVisibility(true);
 
     AMeshActor* Mesh = SpawnChildActor<AMeshActor>(AMeshActor::StaticClass());
     Mesh->Model = GetAsset<CModel>("Game/Meshes/Boat/gemiLow.fbx");

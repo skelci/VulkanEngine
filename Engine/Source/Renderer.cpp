@@ -33,7 +33,10 @@ CRenderer::~CRenderer() {
     Cleanup();
 }
 
-void CRenderer::Tick(float DeltaTime) { DrawFrame(); }
+void CRenderer::Tick(float DeltaTime) {
+    FlushPendingUIOperations();
+    DrawFrame();
+}
 
 void CRenderer::FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
     auto engine = reinterpret_cast<CRenderer*>(glfwGetWindowUserPointer(window));
@@ -763,16 +766,31 @@ void CRenderer::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-void CRenderer::RemoveUIWidget(const WWidget* Widget) {
-    for (auto it = UIWidgets.begin(); it != UIWidgets.end(); ++it) {
-        if (it->get() == Widget) {
-            UIWidgets.erase(it);
-            break;
-        }
-    }
-}
+void CRenderer::RemoveUIWidget(const WWidget* Widget) { PendingUIRemovals.push_back(Widget); }
 
-void CRenderer::ClearUIWidgets() { UIWidgets.clear(); }
+void CRenderer::ClearUIWidgets() { PendingUIClear = true; }
+
+void CRenderer::FlushPendingUIOperations() {
+    if (PendingUIClear) {
+        UIWidgets.clear();
+        PendingUIClear = false;
+        PendingUIRemovals.clear();
+    } else {
+        for (const WWidget* Widget : PendingUIRemovals) {
+            for (auto it = UIWidgets.begin(); it != UIWidgets.end(); ++it) {
+                if (it->get() == Widget) {
+                    UIWidgets.erase(it);
+                    break;
+                }
+            }
+        }
+        PendingUIRemovals.clear();
+    }
+    for (auto& Widget : PendingUIAdditions) {
+        UIWidgets.push_back(std::move(Widget));
+    }
+    PendingUIAdditions.clear();
+}
 
 void CRenderer::CreateBuffer(
     VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
@@ -1252,6 +1270,7 @@ void CRenderer::Cleanup() {
     DefaultTexture.reset();
     DefaultMaterial.reset();
     DefaultWidgetMaterial.reset();
+    PendingUIAdditions.clear();
     UIWidgets.clear();
 
     for (const auto& queue : DeletionQueues) {

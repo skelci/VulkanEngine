@@ -9,6 +9,7 @@ class AEnemy : public ACharacter {
 
 public:
     AEnemy();
+    ~AEnemy();
 
     virtual void Tick(float DeltaTime) override;
 

@@ -8,7 +8,6 @@ ACharacter::ACharacter() {
     SimulatePhysics = true;
     Friction = 1;
     SetBoxExtent(SVector(0.25f, 0.25f, 0.6f));
-    SetVisibility(true);
 
     Mesh = SpawnChildActor<AMeshActor>(AMeshActor::StaticClass());
     Mesh->Model = GetAsset<CModel>("Game/Character/burnice.fbx", true);

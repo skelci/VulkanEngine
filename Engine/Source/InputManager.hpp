@@ -172,6 +172,8 @@ public:
 
 private:
     std::vector<std::unique_ptr<SInputMappingContext>> MappingContexts;
+    std::vector<SInputMappingContext*> PendingRemovals;
+    bool IsTicking = false;
 
     void ProcessDigitalInput(EKeys Key, SInputAction Action);
     void ProcessAxis1DInput(EKeys Key, SInputAction Action);

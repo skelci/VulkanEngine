@@ -8,7 +8,13 @@
 
 AEnemy::AEnemy() {
     Mesh->Model->SetMaterialProperty("Color", SVector4(1, 0.5, 0.5));
-    Mesh->Model->SetMaterialProperty("FadeDistance", 15.0f);
+    Mesh->Model->SetMaterialProperty("FadeDistance", 30.0f);
+}
+
+AEnemy::~AEnemy() {
+    if (CGameMap* GameMap = Cast<CGameMap>(GetWorld())) {
+        GameMap->OnEntitiesChanged();
+    }
 }
 
 void AEnemy::Tick(float DeltaTime) {
@@ -19,7 +25,7 @@ void AEnemy::Tick(float DeltaTime) {
 
     const SVector ToPlayer = Player->GetWorldTransform().Position - GetWorldTransform().Position;
 
-    if (ToPlayer.Length() < 10.0f) {
+    if (ToPlayer.Length() < 15.0f) {
         const SVector DesiredVelocity = -ToPlayer.NormalizedXY() * 3.0f;
         Velocity.X = DesiredVelocity.X;
         Velocity.Y = DesiredVelocity.Y;
@@ -34,15 +40,16 @@ void AEnemy::OnHit(const SHitResult& HitResult, SVector& OutAdjustment) {
 
     const STransform& WorldTransform = GetWorldTransform();
 
+    CGameMap* GameMap = Cast<CGameMap>(GetWorld());
     if (HasTrash && Cast<AWaterCollision>(HitResult.OtherActor)) {
         HasTrash = false;
 
         ATrash* Trash = GetWorld()->SpawnActor<ATrash>(ATrash::StaticClass());
         Trash->Transform.Position = WorldTransform.Position + WorldTransform.Position.NormalizedXY() * 2;
         Trash->Transform.Rotation.Yaw = Random::RandRange(0.0, 360.0);
+        GameMap->OnEntitiesChanged();
     }
 
-    CGameMap* GameMap = Cast<CGameMap>(GetWorld());
     if (HitResult.OtherActor != GameMap->Player) {
         return;
     }
@@ -52,9 +59,9 @@ void AEnemy::OnHit(const SHitResult& HitResult, SVector& OutAdjustment) {
 
         const SVector ToOther = Actor->GetWorldTransform().Position - WorldTransform.Position;
         const float Dist = ToOther.Length();
-        if (Dist < 10.0f) {
-            Log("Game", ELogLevel::Info, "Enemy killed you! Restarting level...");
-            GEngine->OpenWorld(CGameMap::StaticClass());
+        if (Dist < 15.0f) {
+            Log("Game", ELogLevel::Info, "Enemy killed you!");
+            GameMap->OnPlayerDied();
             return;
         }
     }

@@ -11,7 +11,12 @@ public:
     WPlaytimeUI();
 
     void SetScore(int32 Score);
+    void SetLevel(int32 Level);
+    void UpdateCounts(int32 TrashLeft, int32 EnemiesLeft);
 
 protected:
+    class WText* LevelText;
+    class WText* TrashText;
+    class WText* EnemyText;
     class WText* ScoreText;
 };

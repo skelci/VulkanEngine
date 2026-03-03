@@ -18,6 +18,7 @@ class CWorld : public CObject {
 protected:
     friend class CEngine;
     virtual void BeginPlay();
+    virtual void EndPlay();
 
 public:
     virtual void Tick(float DeltaTime);

@@ -29,6 +29,9 @@ private:
 
     TSubclassOf<CWorld> PendingWorldClass;
     std::unique_ptr<CWorld> World;
+    bool IsWorldTransitioning = false;
+
+    CObject* GameInstance;
 
 public:
     void Stop() { IsRunning = false; }
@@ -36,8 +39,13 @@ public:
     GLFWwindow* GetWindow() const { return Window; }
     CRenderer* GetRenderer() const { return Renderer; }
 
-    CWorld* GetWorld() const { return World.get(); }
+    CWorld* GetWorld() const;
     void OpenWorld(const TSubclassOf<CWorld>& WorldClass) { PendingWorldClass = WorldClass; }
+
+    template <typename T>
+    T* GetGameInstance() const {
+        return Cast<T>(GameInstance);
+    }
 
     float SimulationSpeed = 1.0f;
 };

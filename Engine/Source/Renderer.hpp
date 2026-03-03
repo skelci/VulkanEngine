@@ -57,12 +57,13 @@ public:
         static_assert(std::is_base_of_v<WWidget, T>, "T must be a subclass of WWidget");
         std::unique_ptr<T> widget = std::make_unique<T>();
         T* ptr = widget.get();
-        UIWidgets.push_back(std::move(widget));
+        PendingUIAdditions.push_back(std::move(widget));
         return ptr;
     }
 
     void RemoveUIWidget(const WWidget* Widget);
     void ClearUIWidgets();
+    void FlushPendingUIOperations();
 
     // Handles buffer creation with staging buffer internally
     template <typename T>
@@ -179,6 +180,9 @@ private:
     VkQueue presentQueue;
 
     std::vector<std::unique_ptr<WWidget>> UIWidgets;
+    std::vector<std::unique_ptr<WWidget>> PendingUIAdditions;
+    std::vector<const WWidget*> PendingUIRemovals;
+    bool PendingUIClear = false;
 
     VkSurfaceKHR surface;
 

@@ -7,7 +7,13 @@
 #include "Actors/Teammate.hpp"
 #include "Actors/Trash.hpp"
 #include "Actors/WaterCollision.hpp"
+#include "GameInstance.hpp"
+#include "Maps/MenuMap.hpp"
+#include "UI/DeathUI.hpp"
+#include "UI/EscapeMenu.hpp"
+#include "UI/LoadingScreen.hpp"
 #include "UI/PlaytimeUI.hpp"
+#include "UI/VictoryUI.hpp"
 
 #include "Actors/BoxCollision.hpp"
 #include "Actors/ComplexCollision.hpp"
@@ -17,6 +23,9 @@
 
 
 void CGameMap::BeginPlay() {
+    int32 Level = GEngine->GetGameInstance<CGameInstance>()->Level;
+
+    GEngine->SimulationSpeed = 1.0f;
     GInputManager->SetInputMode(false);
 
     SInputMappingContext* GameMC = new SInputMappingContext();
@@ -45,7 +54,6 @@ void CGameMap::BeginPlay() {
 
     AComplexCollision* SandCollision = Sand->SpawnChildActor<AComplexCollision>(AComplexCollision::StaticClass());
     SandCollision->SetCollisionMeshFromMesh(Sand->Model->Meshes[0]);
-    SandCollision->SetVisibility(true);
 
     Boat = SpawnActor<ABoat>(ABoat::StaticClass());
     Boat->Transform.Position = SVector(52, 52, 1);
@@ -58,7 +66,7 @@ void CGameMap::BeginPlay() {
     Controller->RotateTowardsMovement = true;
     Controller->RotationSpeed = 540;
 
-    for (int32 i = 0; i < 20; i++) {
+    for (int32 i = 0; i < 5 * Level; i++) {
         const SVector RandomPos = SVector(Random::RandRange(-200.0, 200.0), Random::RandRange(-200.0, 200.0), 0);
 
         SHitResult HitResult;
@@ -71,28 +79,49 @@ void CGameMap::BeginPlay() {
         ATrash* Trash = SpawnActor<ATrash>(ATrash::StaticClass());
         Trash->Transform.Position = RandomPos;
         Trash->Transform.Rotation.Yaw = Random::RandRange(0.0, 360.0);
-        Trash->SetVisibility(true);
     }
 
-    for (int32 i = 0; i < 10; i++) {
-        SpawnAtRandomLocation(AEnemy::StaticClass())->SetVisibility(true);
+    for (int32 i = 0; i < 3 * Level; i++) {
+        SpawnAtRandomLocation(AEnemy::StaticClass());
     }
 
-    for (int32 i = 0; i < 10; i++) {
-        SpawnAtRandomLocation(ATeammate::StaticClass())->SetVisibility(true);
+    for (int32 i = 0; i < 2 * Level; i++) {
+        SpawnAtRandomLocation(ATeammate::StaticClass());
     }
 
     GEngine->GetRenderer()->ClearUIWidgets();
 
     PlaytimeUI = GEngine->GetRenderer()->AddUIWidget<WPlaytimeUI>();
+    PlaytimeUI->SetLevel(Level);
+    PlaytimeUI->SetScore(0);
+    PlaytimeUI->UpdateCounts(
+        static_cast<int32>(GetActors<ATrash>().size()), static_cast<int32>(GetActors<AEnemy>().size())
+    );
 }
 
 void CGameMap::AddScore(int32 Amount) {
     Score += Amount;
-    PlaytimeUI->SetScore(Score);
+    if (PlaytimeUI) PlaytimeUI->SetScore(Score);
 }
 
-void CGameMap::OnEscapePressed() { GEngine->Stop(); }
+void CGameMap::OnEscapePressed() { ToggleEscapeMenu(); }
+
+void CGameMap::ToggleEscapeMenu() {
+    if (IsGameOver) return;
+
+    if (EscapeMenuWidget) {
+        GEngine->GetRenderer()->RemoveUIWidget(EscapeMenuWidget);
+        EscapeMenuWidget = nullptr;
+        GInputManager->SetInputMode(false);
+        GEngine->SimulationSpeed = 1.0f;
+        Controller->IsInputEnabled = true;
+    } else {
+        EscapeMenuWidget = GEngine->GetRenderer()->AddUIWidget<WEscapeMenu>();
+        GInputManager->SetInputMode(true);
+        GEngine->SimulationSpeed = 0.0f;
+        Controller->IsInputEnabled = false;
+    }
+}
 
 void CGameMap::SwitchCharacterBoat() {
     if (IsInBoat) {
@@ -128,6 +157,39 @@ void CGameMap::SwitchCharacterBoat() {
         Controller->MovementSpeed = 10.0f;
     }
     IsInBoat = !IsInBoat;
+}
+
+void CGameMap::OnEntitiesChanged() {
+    if (IsGameOver) return;
+
+    int32 TrashLeft = static_cast<int32>(GetActors<ATrash>().size());
+    int32 EnemiesLeft = static_cast<int32>(GetActors<AEnemy>().size());
+    PlaytimeUI->UpdateCounts(TrashLeft, EnemiesLeft);
+
+    if (TrashLeft > 0 || EnemiesLeft > 0) return;
+
+    // Level complete!
+    IsGameOver = true;
+    GInputManager->SetInputMode(true);
+    GEngine->SimulationSpeed = 0.0f;
+    Controller->IsInputEnabled = false;
+    PlaytimeUI = nullptr;
+    EscapeMenuWidget = nullptr;
+    GEngine->GetRenderer()->ClearUIWidgets();
+    GEngine->GetRenderer()->AddUIWidget<WVictoryUI>();
+}
+
+void CGameMap::OnPlayerDied() {
+    if (IsGameOver) return;
+
+    IsGameOver = true;
+    GInputManager->SetInputMode(true);
+    GEngine->SimulationSpeed = 0.0f;
+    Controller->IsInputEnabled = false;
+    PlaytimeUI = nullptr;
+    EscapeMenuWidget = nullptr;
+    GEngine->GetRenderer()->ClearUIWidgets();
+    GEngine->GetRenderer()->AddUIWidget<WDeathUI>();
 }
 
 ABoxCollision* CGameMap::SpawnAtRandomLocation(const TSubclassOf<ABoxCollision>& ActorClass) {

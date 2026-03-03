@@ -1,6 +1,7 @@
 #include "Trash.hpp"
 
 #include "Actors/MeshActor.hpp"
+#include "Maps/GameMap.hpp"
 
 
 ATrash::ATrash() {
@@ -12,6 +13,12 @@ ATrash::ATrash() {
     TrashMesh->Model = GetAsset<CModel>("Game/Meshes/Trash.glb");
     TrashMesh->Transform.Scale = SVector(0.01f);
     TrashMesh->Transform.Position = SVector(0, 0, -0.5f);
+}
+
+ATrash::~ATrash() {
+    if (CGameMap* GameMap = Cast<CGameMap>(GetWorld())) {
+        GameMap->OnEntitiesChanged();
+    }
 }
 
 void ATrash::Tick(float DeltaTime) {

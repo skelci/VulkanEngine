@@ -25,6 +25,8 @@ public:
     float MaxCameraDistance = 10.0f;
     float DesiredRotation = 0.0f;
 
+    bool IsInputEnabled = true;
+
     // If false, the parent rotation will be snapped to controller rotation.
     bool RotateTowardsMovement = false;
     bool DisableSteering = false;

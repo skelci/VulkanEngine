@@ -20,6 +20,7 @@ public:
     float FontSize = 24.0f;
 
     void SetText(const std::string& InText);
+    const std::string& GetText() const { return Text; }
     void SetFont(std::shared_ptr<CFont> InFont);
 
     void SetMaterial(std::shared_ptr<CMaterial> Material);

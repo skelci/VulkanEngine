@@ -40,6 +40,11 @@ AController::AController() {
 void AController::Tick(float DeltaTime) {
     Super::Tick(DeltaTime);
 
+    if (!IsInputEnabled) {
+        InputVector = SVector(0);
+        return;
+    }
+
     const STransform ParentTransform = Parent->GetWorldTransform();
     const SVector NormalizedInput = InputVector.SafeNormalizedXY();
 
@@ -69,6 +74,7 @@ void AController::Tick(float DeltaTime) {
 }
 
 void AController::Move(EKeys Key) {
+    if (!IsInputEnabled) return;
     switch (Key) {
     case EKeys::W: InputVector.X += 1; break;
     case EKeys::S: InputVector.X += -1; break;
@@ -78,6 +84,7 @@ void AController::Move(EKeys Key) {
 }
 
 void AController::Look(SVector2 Delta) {
+    if (!IsInputEnabled) return;
     const SVector2 ScaledDelta = Delta * 0.1f;
     SRotator& ArmRotation = CameraArm->Transform.Rotation;
     ArmRotation.Pitch += -ScaledDelta.Y;
@@ -91,6 +98,7 @@ void AController::Look(SVector2 Delta) {
 }
 
 void AController::UpdateCameraDistance(float Amount) {
+    if (!IsInputEnabled) return;
     double& CameraDistance = Camera->Transform.Position.X;
     CameraDistance += Amount * 0.3f;
     CameraDistance = std::clamp((float)CameraDistance, -MaxCameraDistance, -MinCameraDistance);

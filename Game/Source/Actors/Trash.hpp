@@ -9,6 +9,7 @@ class ATrash : public ABoxCollision {
 
 public:
     ATrash();
+    ~ATrash();
 
     virtual void Tick(float DeltaTime) override;
 };

@@ -13,16 +13,24 @@ protected:
 public:
     void AddScore(int32 Amount = 1);
     void OnEscapePressed();
+    void ToggleEscapeMenu();
     void SwitchCharacterBoat();
+
+    void OnEntitiesChanged();
+    void OnPlayerDied();
+
+    int32 GetScore() const { return Score; }
 
     class AController* Controller;
     class ACharacter* Player;
 
 private:
     bool IsInBoat = false;
+    bool IsGameOver = false;
     class ABoat* Boat;
 
-    class WPlaytimeUI* PlaytimeUI;
+    class WPlaytimeUI* PlaytimeUI = nullptr;
+    class WEscapeMenu* EscapeMenuWidget = nullptr;
     int32 Score = 0;
 
 protected:

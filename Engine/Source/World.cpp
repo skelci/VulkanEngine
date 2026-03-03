@@ -8,6 +8,8 @@
 
 void CWorld::BeginPlay() {}
 
+void CWorld::EndPlay() { Actors.clear(); }
+
 void CWorld::Tick(float DeltaTime) {
     TRACE_FUNCTION();
     {

@@ -86,22 +86,56 @@ void CInputManager::Tick(float DeltaTime) {
         }
     );
 
-    for (const auto& context : MappingContexts) {
+    IsTicking = true;
+
+    for (size_t ci = 0; ci < MappingContexts.size(); ci++) {
+        auto* context = MappingContexts[ci].get();
+
+        // Check if this context was deferred-removed
+        bool removed = false;
+        for (auto* pending : PendingRemovals) {
+            if (pending == context) {
+                removed = true;
+                break;
+            }
+        }
+        if (removed) continue;
+
+        // Collect keys to remove after iterating
+        std::vector<EKeys> InvalidKeys;
+
         for (const auto& [key, actions] : context->GetMappings()) {
-            for (int32 i = actions.size() - 1; i >= 0; i--) {
+            bool allInvalid = true;
+            for (int32 i = static_cast<int32>(actions.size()) - 1; i >= 0; i--) {
                 const auto& action = actions[i];
                 if (!action.IsValid()) {
-                    context->RemoveMapping(key);
                     continue;
                 }
+                allInvalid = false;
                 switch (action.ValueType) {
                 case EInputValueType::Digital: ProcessDigitalInput(key, action); break;
                 case EInputValueType::Axis1D: ProcessAxis1DInput(key, action); break;
                 case EInputValueType::Axis2D: ProcessAxis2DInput(key, action); break;
                 }
             }
+            if (allInvalid && !actions.empty()) {
+                InvalidKeys.push_back(key);
+            }
+        }
+
+        // Clean up invalid mappings after iteration
+        for (EKeys k : InvalidKeys) {
+            context->RemoveMapping(k);
         }
     }
+
+    IsTicking = false;
+
+    // Process deferred removals
+    for (auto* ctx : PendingRemovals) {
+        RemoveMappingContext(ctx);
+    }
+    PendingRemovals.clear();
 
     PreviousFrameDigitalKeys = ThisFrameDigitalKeys;
     ThisFrameDigitalKeys.clear();
@@ -115,6 +149,10 @@ void CInputManager::AddMappingContext(SInputMappingContext* Context) {
 }
 
 void CInputManager::RemoveMappingContext(SInputMappingContext* Context) {
+    if (IsTicking) {
+        PendingRemovals.push_back(Context);
+        return;
+    }
     MappingContexts.erase(
         std::remove_if(
             MappingContexts.begin(), MappingContexts.end(),
