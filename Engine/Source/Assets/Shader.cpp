@@ -1,5 +1,6 @@
 #include "Shader.hpp"
 
+#include "DefaultEngineConfig.hpp"
 #include "EngineStatics.hpp"
 #include "Log.hpp"
 #include "Renderer.hpp"
@@ -56,6 +57,8 @@ std::vector<char> CShader::ReadBinaryFile(const std::string& filename) {
 }
 
 void CShader::LoadFromFile(const std::string& FilePath) {
+    const bool CompileOnStartup = GEngineConfig.compileShadersOnStartup;
+
     std::string fileContent = ReadFileContent(FilePath);
     if (fileContent.empty()) {
         Log("Shader", ELogLevel::Error, "Failed to load shader source: " + FilePath);
@@ -154,186 +157,189 @@ void CShader::LoadFromFile(const std::string& FilePath) {
     }
     UBOSize = uboOffset;
 
-    // --- COMMON SHADER CODE GENERATION ---
-    std::stringstream commonSS;
-    commonSS << "#define saturate(x) clamp(x, 0.0, 1.0)\n";
-    commonSS << "#define lerp(a, b, t) mix(a, b, t)\n";
-    commonSS << "#define one_minus(x) (1.0 - x)\n";
-
-    if (ShaderType == "UI") {
-        commonSS << "#define WidgetSize ModelScale.xy\n";
-    }
-
-    // --- VERTEX GENERATION ---
-    std::stringstream vertSS;
-    vertSS << "#version 450\n\n";
-    vertSS << commonSS.str() << "\n";
-    vertSS << "layout(set = 0, binding = 0) uniform CameraBuffer {\n";
-    vertSS << "    mat4 view;\n";
-    vertSS << "    mat4 proj;\n";
-    vertSS << "    mat4 ortho;\n";
-    vertSS << "    vec4 position;\n";
-    vertSS << "    float time;\n";
-    vertSS << "} camera;\n";
-    vertSS << "#define Time camera.time\n\n";
-
-    // Inject Material UBO if needed
-    if (UBOSize > 0) {
-        vertSS << "layout(std140, set = 1, binding = 0) uniform MaterialBuffer {\n";
-        for (const auto& prop : Properties) {
-            if (prop.Type != EShaderPropertyType::Texture) {
-                std::string typeName;
-                if (prop.Type == EShaderPropertyType::Float) typeName = "float";
-                if (prop.Type == EShaderPropertyType::Vec2) typeName = "vec2";
-                if (prop.Type == EShaderPropertyType::Vec3) typeName = "vec3";
-                if (prop.Type == EShaderPropertyType::Vec4) typeName = "vec4";
-                vertSS << "    " << typeName << " " << prop.Name << ";\n";
-            }
-        }
-        vertSS << "} mat;\n\n";
-    }
-
-    // Inject Textures (Binding)
-    for (const auto& prop : Properties) {
-        if (prop.Type == EShaderPropertyType::Texture) {
-            vertSS << "layout(set = 1, binding = " << prop.Binding << ") uniform sampler2D " << prop.Name << ";\n";
-        }
-    }
-
-    vertSS << "layout(push_constant) uniform PushConstants {\n";
-    vertSS << "    mat4 model;\n";
-    vertSS << "} push;\n\n";
-    vertSS << "layout(location = 0) in vec3 VertRP;\n";
-    vertSS << "layout(location = 1) in vec3 VertColor;\n";
-    vertSS << "layout(location = 2) in vec2 inTexCoord;\n";
-    vertSS << "layout(location = 3) in vec3 inNormal;\n\n";
-    vertSS << "layout(location = 0) out vec3 fragColor;\n";
-    vertSS << "layout(location = 1) out vec2 UV;\n";
-    vertSS << "layout(location = 2) out vec3 fragNormal;\n";
-    vertSS << "layout(location = 3) out vec3 ModelWP;\n";
-    vertSS << "layout(location = 4) out vec3 FragWP;\n";
-    vertSS << "layout(location = 5) out vec3 CameraWP;\n";
-    vertSS << "layout(location = 6) out vec3 ModelScale;\n";
-    vertSS << "layout(location = 7) out float outTime;\n\n";
-
-    // Inject user code
-    vertSS << "#define VERTEX\n";
-    vertSS << "// User Code Begin\n";
-    vertSS << userCode << "\n";
-    vertSS << "// User Code End\n\n";
-
-    // Inject default if missing
-    if (userCode.find("GetWPO") == std::string::npos) {
-        vertSS << "vec3 GetWPO() { return vec3(0.0); }\n\n";
-    }
-
-    vertSS << "void main() {\n";
-    vertSS << "    UV = inTexCoord;\n";
-    vertSS << "    FragWP = vec3(push.model * vec4(VertRP, 1.0));\n";
-    vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
-    vertSS << "    CameraWP = camera.position.xyz;\n";
-    vertSS
-        << "    ModelScale = vec3(length(push.model[0].xyz), length(push.model[1].xyz), length(push.model[2].xyz));\n";
-    vertSS << "    vec3 offset = GetWPO();\n";
-    if (ShaderType == "UI") {
-        vertSS << "    gl_Position = camera.ortho * push.model * vec4(VertRP + offset, 1.0);\n";
-    } else {
-        vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(VertRP + offset, 1.0);\n";
-    }
-    vertSS << "    fragColor = VertColor;\n";
-    vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
-    vertSS << "    fragNormal = normalize(normalMatrix * inNormal);\n";
-    vertSS << "    outTime = Time;\n";
-    vertSS << "}\n";
-
-    // --- FRAGMENT GENERATION ---
-    std::stringstream fragSS;
-    fragSS << "#version 450\n\n";
-    fragSS << commonSS.str() << "\n";
-
-    // Inject Material Scope (Same layouts)
-    if (UBOSize > 0) {
-        fragSS << "layout(std140, set = 1, binding = 0) uniform MaterialBuffer {\n";
-        for (const auto& prop : Properties) {
-            if (prop.Type != EShaderPropertyType::Texture) {
-                std::string typeName;
-                if (prop.Type == EShaderPropertyType::Float) typeName = "float";
-                if (prop.Type == EShaderPropertyType::Vec2) typeName = "vec2";
-                if (prop.Type == EShaderPropertyType::Vec3) typeName = "vec3";
-                if (prop.Type == EShaderPropertyType::Vec4) typeName = "vec4";
-                fragSS << "    " << typeName << " " << prop.Name << ";\n";
-            }
-        }
-        fragSS << "} mat;\n\n";
-    }
-
-    for (const auto& prop : Properties) {
-        if (prop.Type == EShaderPropertyType::Texture) {
-            fragSS << "layout(set = 1, binding = " << prop.Binding << ") uniform sampler2D " << prop.Name << ";\n";
-        }
-    }
-
-    fragSS << "layout(location = 0) in vec3 FragColor;\n";
-    fragSS << "layout(location = 1) in vec2 UV;\n";
-    fragSS << "layout(location = 2) in vec3 Normal;\n";
-    fragSS << "layout(location = 3) in vec3 ModelWP;\n";
-    fragSS << "layout(location = 4) in vec3 FragWP;\n";
-    fragSS << "layout(location = 5) in vec3 CameraWP;\n";
-    fragSS << "layout(location = 6) in vec3 ModelScale;\n";
-    fragSS << "layout(location = 7) in float Time;\n\n";
-    fragSS << "layout(location = 0) out vec4 outColor;\n\n";
-
-    // Inject user code
-    fragSS << "#define FRAGMENT\n";
-    fragSS << "// User Code Begin\n";
-    fragSS << userCode << "\n";
-    fragSS << "// User Code End\n\n";
-
-    if (userCode.find("GetColor") == std::string::npos) {
-        fragSS << "vec4 GetColor() { return vec4(FragColor, 1.0); }\n\n";
-    }
-
-    fragSS << "void main() {\n";
-    fragSS << "    outColor = GetColor();\n";
-    fragSS << "}\n";
-
-    // Write temp files
+    // Save shader paths
     const std::filesystem::path sourcePath(FilePath);
     const std::filesystem::path parentDir = sourcePath.parent_path();
     const std::string stem = sourcePath.stem().string();
 
     std::filesystem::path saveDir = std::filesystem::path("Saved/Shaders") / parentDir;
-    std::filesystem::create_directories(saveDir);
 
-    std::string vertFileName = stem + "_Temp_Vertex.vert";
-    std::string fragFileName = stem + "_Temp_Fragment.frag";
-
-    std::string vertPath = (saveDir / vertFileName).string();
-    std::string fragPath = (saveDir / fragFileName).string();
-
-    SaveToFile(vertPath, vertSS.str());
-    SaveToFile(fragPath, fragSS.str());
-
-    // Compile
     std::string vertSpvName = stem + "_Temp_Vertex.spv";
     std::string fragSpvName = stem + "_Temp_Fragment.spv";
 
     std::string vertSpv = (saveDir / vertSpvName).string();
     std::string fragSpv = (saveDir / fragSpvName).string();
 
-    std::string cmdVert = "glslc -I. " + vertPath + " -o " + vertSpv;
-    std::string cmdFrag = "glslc -I. " + fragPath + " -o " + fragSpv;
+    if (CompileOnStartup) {
+        // --- COMMON SHADER CODE GENERATION ---
+        std::stringstream commonSS;
+        commonSS << "#define saturate(x) clamp(x, 0.0, 1.0)\n";
+        commonSS << "#define lerp(a, b, t) mix(a, b, t)\n";
+        commonSS << "#define one_minus(x) (1.0 - x)\n";
 
-    int retVert = std::system(cmdVert.c_str());
-    if (retVert != 0) {
-        Log("Shader", ELogLevel::Error, "Failed to compile vertex shader: " + FilePath);
-        return;
-    }
+        if (ShaderType == "UI") {
+            commonSS << "#define WidgetSize ModelScale.xy\n";
+        }
 
-    int retFrag = std::system(cmdFrag.c_str());
-    if (retFrag != 0) {
-        Log("Shader", ELogLevel::Error, "Failed to compile fragment shader: " + FilePath);
-        return;
+        // --- VERTEX GENERATION ---
+        std::stringstream vertSS;
+        vertSS << "#version 450\n\n";
+        vertSS << commonSS.str() << "\n";
+        vertSS << "layout(set = 0, binding = 0) uniform CameraBuffer {\n";
+        vertSS << "    mat4 view;\n";
+        vertSS << "    mat4 proj;\n";
+        vertSS << "    mat4 ortho;\n";
+        vertSS << "    vec4 position;\n";
+        vertSS << "    float time;\n";
+        vertSS << "} camera;\n";
+        vertSS << "#define Time camera.time\n\n";
+
+        // Inject Material UBO if needed
+        if (UBOSize > 0) {
+            vertSS << "layout(std140, set = 1, binding = 0) uniform MaterialBuffer {\n";
+            for (const auto& prop : Properties) {
+                if (prop.Type != EShaderPropertyType::Texture) {
+                    std::string typeName;
+                    if (prop.Type == EShaderPropertyType::Float) typeName = "float";
+                    if (prop.Type == EShaderPropertyType::Vec2) typeName = "vec2";
+                    if (prop.Type == EShaderPropertyType::Vec3) typeName = "vec3";
+                    if (prop.Type == EShaderPropertyType::Vec4) typeName = "vec4";
+                    vertSS << "    " << typeName << " " << prop.Name << ";\n";
+                }
+            }
+            vertSS << "} mat;\n\n";
+        }
+
+        // Inject Textures (Binding)
+        for (const auto& prop : Properties) {
+            if (prop.Type == EShaderPropertyType::Texture) {
+                vertSS << "layout(set = 1, binding = " << prop.Binding << ") uniform sampler2D " << prop.Name << ";\n";
+            }
+        }
+
+        vertSS << "layout(push_constant) uniform PushConstants {\n";
+        vertSS << "    mat4 model;\n";
+        vertSS << "} push;\n\n";
+        vertSS << "layout(location = 0) in vec3 VertRP;\n";
+        vertSS << "layout(location = 1) in vec3 VertColor;\n";
+        vertSS << "layout(location = 2) in vec2 inTexCoord;\n";
+        vertSS << "layout(location = 3) in vec3 inNormal;\n\n";
+        vertSS << "layout(location = 0) out vec3 fragColor;\n";
+        vertSS << "layout(location = 1) out vec2 UV;\n";
+        vertSS << "layout(location = 2) out vec3 fragNormal;\n";
+        vertSS << "layout(location = 3) out vec3 ModelWP;\n";
+        vertSS << "layout(location = 4) out vec3 FragWP;\n";
+        vertSS << "layout(location = 5) out vec3 CameraWP;\n";
+        vertSS << "layout(location = 6) out vec3 ModelScale;\n";
+        vertSS << "layout(location = 7) out float outTime;\n\n";
+
+        // Inject user code
+        vertSS << "#define VERTEX\n";
+        vertSS << "// User Code Begin\n";
+        vertSS << userCode << "\n";
+        vertSS << "// User Code End\n\n";
+
+        // Inject default if missing
+        if (userCode.find("GetWPO") == std::string::npos) {
+            vertSS << "vec3 GetWPO() { return vec3(0.0); }\n\n";
+        }
+
+        vertSS << "void main() {\n";
+        vertSS << "    UV = inTexCoord;\n";
+        vertSS << "    FragWP = vec3(push.model * vec4(VertRP, 1.0));\n";
+        vertSS << "    ModelWP = vec3(push.model * vec4(vec3(0.0), 1.0));\n";
+        vertSS << "    CameraWP = camera.position.xyz;\n";
+        vertSS << "    ModelScale = vec3(length(push.model[0].xyz), length(push.model[1].xyz), "
+                  "length(push.model[2].xyz));\n";
+        vertSS << "    vec3 offset = GetWPO();\n";
+        if (ShaderType == "UI") {
+            vertSS << "    gl_Position = camera.ortho * push.model * vec4(VertRP + offset, 1.0);\n";
+        } else {
+            vertSS << "    gl_Position = camera.proj * camera.view * push.model * vec4(VertRP + offset, 1.0);\n";
+        }
+        vertSS << "    fragColor = VertColor;\n";
+        vertSS << "    mat3 normalMatrix = transpose(inverse(mat3(push.model)));\n";
+        vertSS << "    fragNormal = normalize(normalMatrix * inNormal);\n";
+        vertSS << "    outTime = Time;\n";
+        vertSS << "}\n";
+
+        // --- FRAGMENT GENERATION ---
+        std::stringstream fragSS;
+        fragSS << "#version 450\n\n";
+        fragSS << commonSS.str() << "\n";
+
+        // Inject Material Scope (Same layouts)
+        if (UBOSize > 0) {
+            fragSS << "layout(std140, set = 1, binding = 0) uniform MaterialBuffer {\n";
+            for (const auto& prop : Properties) {
+                if (prop.Type != EShaderPropertyType::Texture) {
+                    std::string typeName;
+                    if (prop.Type == EShaderPropertyType::Float) typeName = "float";
+                    if (prop.Type == EShaderPropertyType::Vec2) typeName = "vec2";
+                    if (prop.Type == EShaderPropertyType::Vec3) typeName = "vec3";
+                    if (prop.Type == EShaderPropertyType::Vec4) typeName = "vec4";
+                    fragSS << "    " << typeName << " " << prop.Name << ";\n";
+                }
+            }
+            fragSS << "} mat;\n\n";
+        }
+
+        for (const auto& prop : Properties) {
+            if (prop.Type == EShaderPropertyType::Texture) {
+                fragSS << "layout(set = 1, binding = " << prop.Binding << ") uniform sampler2D " << prop.Name << ";\n";
+            }
+        }
+
+        fragSS << "layout(location = 0) in vec3 FragColor;\n";
+        fragSS << "layout(location = 1) in vec2 UV;\n";
+        fragSS << "layout(location = 2) in vec3 Normal;\n";
+        fragSS << "layout(location = 3) in vec3 ModelWP;\n";
+        fragSS << "layout(location = 4) in vec3 FragWP;\n";
+        fragSS << "layout(location = 5) in vec3 CameraWP;\n";
+        fragSS << "layout(location = 6) in vec3 ModelScale;\n";
+        fragSS << "layout(location = 7) in float Time;\n\n";
+        fragSS << "layout(location = 0) out vec4 outColor;\n\n";
+
+        // Inject user code
+        fragSS << "#define FRAGMENT\n";
+        fragSS << "// User Code Begin\n";
+        fragSS << userCode << "\n";
+        fragSS << "// User Code End\n\n";
+
+        if (userCode.find("GetColor") == std::string::npos) {
+            fragSS << "vec4 GetColor() { return vec4(FragColor, 1.0); }\n\n";
+        }
+
+        fragSS << "void main() {\n";
+        fragSS << "    outColor = GetColor();\n";
+        fragSS << "}\n";
+
+        // Compile
+        std::filesystem::create_directories(saveDir);
+
+        std::string vertFileName = stem + "_Temp_Vertex.vert";
+        std::string fragFileName = stem + "_Temp_Fragment.frag";
+
+        std::string vertPath = (saveDir / vertFileName).string();
+        std::string fragPath = (saveDir / fragFileName).string();
+
+        SaveToFile(vertPath, vertSS.str());
+        SaveToFile(fragPath, fragSS.str());
+
+        std::string cmdVert = "glslc -I. " + vertPath + " -o " + vertSpv;
+        std::string cmdFrag = "glslc -I. " + fragPath + " -o " + fragSpv;
+
+        int retVert = std::system(cmdVert.c_str());
+        if (retVert != 0) {
+            Log("Shader", ELogLevel::Error, "Failed to compile vertex shader: " + FilePath);
+            return;
+        }
+
+        int retFrag = std::system(cmdFrag.c_str());
+        if (retFrag != 0) {
+            Log("Shader", ELogLevel::Error, "Failed to compile fragment shader: " + FilePath);
+            return;
+        }
     }
 
     // Load binaries

@@ -8,4 +8,5 @@
 void ConfigureEngine() {
     GEngineConfig.WorldClass = CMenuMap::StaticClass();
     GEngineConfig.GameInstanceClass = CGameInstance::StaticClass();
+    GEngineConfig.compileShadersOnStartup = false;
 }
