@@ -1,21 +1,26 @@
 #include "GameInstance.hpp"
 
 #include <fstream>
-#include <sstream>
 
 
 void CGameInstance::LoadLeaderboard() {
     Leaderboard.clear();
-    std::ifstream File("Saved/Leaderboard.txt");
+    std::ifstream File("Saved/Leaderboard.bin", std::ios::binary);
     if (!File.is_open()) return;
-    std::string Line;
-    while (std::getline(File, Line)) {
-        std::istringstream SS(Line);
+    uint32 Count = 0;
+    if (!File.read(reinterpret_cast<char*>(&Count), sizeof(Count))) return;
+    for (uint32 i = 0; i < Count; ++i) {
+        uint32 NameLen = 0;
+        if (!File.read(reinterpret_cast<char*>(&NameLen), sizeof(NameLen))) break;
         std::string Name;
-        int32 Lvl = 0, Score = 0;
-        if (SS >> Name >> Lvl >> Score) {
-            Leaderboard[Name] = {Lvl, Score};
+        if (NameLen > 0) {
+            Name.resize(NameLen);
+            File.read(&Name[0], NameLen);
         }
+        int32 Lvl = 0, Score = 0;
+        File.read(reinterpret_cast<char*>(&Lvl), sizeof(Lvl));
+        File.read(reinterpret_cast<char*>(&Score), sizeof(Score));
+        Leaderboard[Name] = {Lvl, Score};
         if (Name == Username) {
             Level = Lvl;
             TotalScore = Score;
@@ -24,10 +29,18 @@ void CGameInstance::LoadLeaderboard() {
 }
 
 void CGameInstance::SaveLeaderboard() {
-    std::ofstream File("Saved/Leaderboard.txt");
+    std::ofstream File("Saved/Leaderboard.bin", std::ios::binary);
     if (!File.is_open()) return;
+    uint32 Count = static_cast<uint32>(Leaderboard.size());
+    File.write(reinterpret_cast<const char*>(&Count), sizeof(Count));
     for (const auto& [Name, Entry] : Leaderboard) {
-        File << Name << " " << Entry.Level << " " << Entry.TotalScore << "\n";
+        uint32 NameLen = static_cast<uint32>(Name.size());
+        File.write(reinterpret_cast<const char*>(&NameLen), sizeof(NameLen));
+        if (NameLen > 0) File.write(Name.data(), NameLen);
+        int32 Lvl = Entry.Level;
+        int32 Score = Entry.TotalScore;
+        File.write(reinterpret_cast<const char*>(&Lvl), sizeof(Lvl));
+        File.write(reinterpret_cast<const char*>(&Score), sizeof(Score));
     }
 }
 

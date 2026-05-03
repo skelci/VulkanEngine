@@ -7,7 +7,8 @@
 struct SEngineConfig {
     TSubclassOf<CWorld> WorldClass = CWorld::StaticClass();
     TSubclassOf<CObject> GameInstanceClass = CObject::StaticClass();
-    bool compileShadersOnStartup = true;
+    bool CompileShadersOnStartup = true;
+    bool AllowDedicatedGPU = true;
 };
 
 extern SEngineConfig GEngineConfig;

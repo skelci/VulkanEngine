@@ -57,7 +57,7 @@ std::vector<char> CShader::ReadBinaryFile(const std::string& filename) {
 }
 
 void CShader::LoadFromFile(const std::string& FilePath) {
-    const bool CompileOnStartup = GEngineConfig.compileShadersOnStartup;
+    const bool CompileOnStartup = GEngineConfig.CompileShadersOnStartup;
 
     std::string fileContent = ReadFileContent(FilePath);
     if (fileContent.empty()) {
