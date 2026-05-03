@@ -84,7 +84,9 @@ void CEngine::MainLoop() {
     glfwPollEvents();
     GInputManager->Tick(deltaTime);
 
-    World->Tick(deltaTime);
+    if (deltaTime > 0) {
+        World->Tick(deltaTime);
+    }
 
     Renderer->Tick(deltaTime);
 }
