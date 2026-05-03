@@ -1089,6 +1089,11 @@ void CRenderer::PickPhysicalDevice() {
     if (candidates.rbegin()->first > 0) {
         physicalDevice = candidates.rbegin()->second;
         msaaSamples = GetMaxUsableSampleCount();
+
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+        std::string deviceName = properties.deviceName;
+        Log("Renderer", ELogLevel::Info, "Selected GPU: " + deviceName);
     } else {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
