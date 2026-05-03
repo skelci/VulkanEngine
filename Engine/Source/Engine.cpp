@@ -53,7 +53,6 @@ void CEngine::Initialize() {
 void CEngine::MainLoop() {
     TRACE_FUNCTION();
 
-    glfwPollEvents();
     if (glfwWindowShouldClose(Window)) {
         IsRunning = false;
     }
@@ -82,6 +81,7 @@ void CEngine::MainLoop() {
         deltaTime = 0.1f;
     }
 
+    glfwPollEvents();
     GInputManager->Tick(deltaTime);
 
     World->Tick(deltaTime);
